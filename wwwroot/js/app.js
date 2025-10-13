@@ -71,6 +71,21 @@ let clearedBefore = {}; // name -> lastClearedRoundIdx
 
 // 初始进入时弹出入门引导
 resetSession(true);
+// 统一名称：将“空”“荧”（及常见写法）都视为“旅行者”
+function normalizeName(name){
+  const n = (name||'').trim();
+  if (!n) return '';
+  // 去除中间空白，便于匹配“旅行者 · 空”等写法
+  const t = n.replace(/\s+/g,'');
+  // 直接是空/荧
+  if (/^(空|荧)$/.test(t)) return '旅行者';
+  // 旅行者·空 / 旅行者·荧（不同点号/中点变体）
+  if (/^旅行者[·・\.·]?(空|荧)$/.test(t)) return '旅行者';
+  // 可选：英文名（防御性处理）
+  if (/^(Aether|Lumine|Traveler)$/i.test(t)) return '旅行者';
+  return n;
+}
+
 
 function canRunRecognition() {
   const hasRects = !!localStorage.getItem('avatarSideRects');
@@ -572,7 +587,8 @@ function checkConflictsAndComposeRound(resultsByP){
       round.push({ p, name:'', avatarUrl:'', from:'auto', confidence: r?.confidence ?? 0, conflict:false, reason:'未识别', editable:true });
       continue;
     }
-    const name = r.nameCn || r.display || r.predicted || '';
+    const raw = r.nameCn || r.display || r.predicted || '';
+    const name = normalizeName(raw);
     const conflict = (bpMode==='personal') ? usedBy[p].has(name) : usedGlobal.has(name);
     const reason = conflict ? (bpMode==='personal' ? `P${p} 已使用过 ${name}` : `${name} 已被使用（全局BP）`) : '';
     const avatar = (window.characterData && window.characterData[name]?.头像) || '';
@@ -688,25 +704,27 @@ function rebuildUsageSetsFromRounds(){
 }
 
 function applyManual(p, name){
+  const selNameNorm = normalizeName(name);
   // 1) 读取当前面板的四个名并应用手动修改
   const currentNames = [];
   for (let i=1;i<=4;i++){
     const slot = roundSlots.children[i-1];
     const nmText = (slot?.querySelector('.name')?.textContent||'').trim();
-    const nm = (i===p? name : (nmText===''||nmText==='——'? '' : nmText));
+    const nmRaw = (i===p? selNameNorm : (nmText===''||nmText==='——'? '' : nmText));
+    const nm = normalizeName(nmRaw);
     currentNames.push({ p:i, name:nm });
   }
 
   // 2) 写入历史：若已有当轮，更新最后一轮；否则创建新一轮
   if (rounds.length===0){
-    rounds.push({ at:new Date().toISOString(), entries: currentNames.map(e=>({ p:e.p, name:e.name, from:(e.p===p?'manual':'auto') })) });
+    rounds.push({ at:new Date().toISOString(), entries: currentNames.map(e=>({ p:e.p, name: normalizeName(e.name), from:(e.p===p?'manual':'auto') })) });
   } else {
     const last = rounds[rounds.length-1];
     const newEntries = (last.entries||[]).slice();
     // 确保长度为4
     for (let i=1;i<=4;i++){
       const prev = newEntries.find(x=>x.p===i) || { p:i, name:'' };
-      const nm = currentNames[i-1].name;
+      const nm = normalizeName(currentNames[i-1].name);
       newEntries[i-1] = { p:i, name:nm, from:(i===p?'manual':(prev.from||'auto')) };
     }
     last.entries = newEntries;
@@ -716,11 +734,12 @@ function applyManual(p, name){
   const priorUsedBy = aggregateUsedBy(true);
   const usedAnyPrev = new Set([...priorUsedBy[1], ...priorUsedBy[2], ...priorUsedBy[3], ...priorUsedBy[4]]);
   const validated = currentNames.map(e=>{
-    const avatarUrl = e.name? (window.characterData[e.name]?.头像||'') : '';
-    if (!e.name) return { p:e.p, name:'', avatarUrl:'', from: (e.p===p?'manual':'auto'), conflict:false, reason:'未选择', editable:true };
-    const conflict = (bpMode==='personal') ? priorUsedBy[e.p].has(e.name) : usedAnyPrev.has(e.name);
-    const reason = conflict ? (bpMode==='personal' ? `P${e.p} 已使用过 ${e.name}` : `${e.name} 已被使用（全局BP）`) : '';
-    return { p:e.p, name:e.name, avatarUrl, from:(e.p===p?'manual':'auto'), conflict, reason, editable:true };
+    const nm = normalizeName(e.name);
+    const avatarUrl = nm? (window.characterData[nm]?.头像||'') : '';
+    if (!nm) return { p:e.p, name:'', avatarUrl:'', from: (e.p===p?'manual':'auto'), conflict:false, reason:'未选择', editable:true };
+    const conflict = (bpMode==='personal') ? priorUsedBy[e.p].has(nm) : usedAnyPrev.has(nm);
+    const reason = conflict ? (bpMode==='personal' ? `P${e.p} 已使用过 ${nm}` : `${nm} 已被使用（全局BP）`) : '';
+    return { p:e.p, name:nm, avatarUrl, from:(e.p===p?'manual':'auto'), conflict, reason, editable:true };
   });
 
   // 4) 重建 usedBy（用于图鉴展示），并刷新 UI：本轮面板、图鉴、历史

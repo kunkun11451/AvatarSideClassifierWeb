@@ -26,6 +26,10 @@ const calibFile = document.getElementById('calibFile');
 const saveCalib = document.getElementById('saveCalib');
 const clearCalib = document.getElementById('clearCalib');
 const closeCalib = document.getElementById('closeCalib');
+const openCalibVideo = document.getElementById('openCalibVideo');
+// two-step calibration containers
+const calibStep1 = document.getElementById('calibStep1');
+const calibStep2 = document.getElementById('calibStep2');
 const roundSlots = document.getElementById('roundSlots');
 const roundTip = document.getElementById('roundTip');
 const calibSlots = document.getElementById('calibSlots');
@@ -84,6 +88,17 @@ function resetSession(showOnboarding=true) {
 }
 resetRecords.addEventListener('click', ()=> resetSession(true));
 
+// 通用：模态框显示/隐藏与页面滚动状态控制
+function anyModalOpen(){
+  return Array.from(document.querySelectorAll('.modal')).some(m => getComputedStyle(m).display === 'flex');
+}
+function refreshModalOpenClass(){
+  if (anyModalOpen()) document.body.classList.add('modal-open');
+  else document.body.classList.remove('modal-open');
+}
+function showModal(el){ if (!el) return; el.style.display = 'flex'; refreshModalOpenClass(); }
+function hideModal(el){ if (!el) return; el.style.display = 'none'; refreshModalOpenClass(); }
+
 function updateOnboardingUI(){
   const hasRects = !!localStorage.getItem('avatarSideRects');
   if (hasRects){
@@ -111,14 +126,16 @@ function updateOnboardingUI(){
       b.classList.toggle('primary', sel);
     });
   }
-  btnStartApp.disabled = !canRunRecognition();
+  // 使用 aria-disabled 控制视觉状态，但保持按钮可点击以便给出反馈
+  const disabled = !canRunRecognition();
+  btnStartApp.setAttribute('aria-disabled', disabled ? 'true' : 'false');
 }
 
 function openOnboarding(){
   updateOnboardingUI();
-  onboardingModal.style.display = 'flex';
+  showModal(onboardingModal);
 }
-function closeOnboarding(){ onboardingModal.style.display = 'none'; }
+function closeOnboarding(){ hideModal(onboardingModal); }
 
 // P select
 if (pButtons){
@@ -133,10 +150,36 @@ if (modeButtons){
   });
 }
 // calib start/recalib
-btnStartCalib?.addEventListener('click', ()=>{ onboardingModal.style.display='none'; calibModal.style.display='flex'; setEditing(true); const cached = localStorage.getItem('avatarCalibImage'); if (cached){ showImageInEditor(cached); } });
-btnRecalib?.addEventListener('click', ()=>{ onboardingModal.style.display='none'; calibModal.style.display='flex'; setEditing(true); const cached = localStorage.getItem('avatarCalibImage'); if (cached){ showImageInEditor(cached); } });
+btnStartCalib?.addEventListener('click', ()=>{
+  hideModal(onboardingModal);
+  openCalibrationWizard();
+});
+btnRecalib?.addEventListener('click', ()=>{
+  hideModal(onboardingModal);
+  openCalibrationWizard();
+});
 // enter app
-btnStartApp?.addEventListener('click', ()=>{ if (!canRunRecognition()) return; roundTip.textContent=''; closeOnboarding(); });
+btnStartApp?.addEventListener('click', (e)=>{
+  const disabled = btnStartApp.getAttribute('aria-disabled') === 'true';
+  if (disabled || !canRunRecognition()){
+    // 定位未完成的块进行闪烁：校准、P、模式
+    const needs = [];
+    const hasRects = !!localStorage.getItem('avatarSideRects');
+    if (!hasRects) needs.push(document.getElementById('calibBlock'));
+    if (!myP) needs.push(document.getElementById('pBlock'));
+    if (!bpMode) needs.push(document.getElementById('modeBlock'));
+    needs.forEach(el=>{
+      if (!el) return;
+      el.classList.add('shake-error');
+      // 动画结束后移除
+      setTimeout(()=> el.classList.remove('shake-error'), 900);
+    });
+    e.preventDefault();
+    return;
+  }
+  roundTip.textContent='';
+  closeOnboarding();
+});
 
 let currentFile = null;
 
@@ -145,6 +188,8 @@ function showImageInEditor(url) {
   imgPrev.onload = () => {
     setupCalibLayerSize();
     positionRects();
+    // 图片加载完成后，确保切换到第2步
+    try { gotoCalibStep(2); } catch {}
   };
   imgPrev.src = url;
   canvasWrap.classList.remove('hidden');
@@ -341,25 +386,76 @@ function setEditing(v) {
 // Calibration modal open/close and actions
 if (openCalibrate){
   openCalibrate.addEventListener('click', ()=>{ 
-    calibModal.style.display='flex'; 
-    setEditing(true);
-    const cached = localStorage.getItem('avatarCalibImage');
-    if (cached){ showImageInEditor(cached); }
+    openCalibrationWizard();
   });
 }
-calibModal.addEventListener('click', (e)=>{ if (e.target===calibModal) { calibModal.style.display='none'; setEditing(false); try{ updateOnboardingUI(); openOnboarding(); }catch{} }});
-closeCalib.addEventListener('click', ()=>{ calibModal.style.display='none'; setEditing(false); try{ updateOnboardingUI(); openOnboarding(); }catch{} });
+calibModal.addEventListener('click', (e)=>{ if (e.target===calibModal) { closeCalibrationWizard(true); } });
+closeCalib.addEventListener('click', ()=>{ closeCalibrationWizard(true); });
 calibFile.addEventListener('change', ()=>{
   const f = calibFile.files?.[0]; if (!f) return; 
   const url = URL.createObjectURL(f); 
   showImageInEditor(url);
-  // 将选择的图片转存为 DataURL 缓存
-  const rdr = new FileReader();
-  rdr.onload = ()=>{ try { localStorage.setItem('avatarCalibImage', rdr.result); } catch {} };
-  rdr.readAsDataURL(f);
+  // 选图后自动进入第2步
+  gotoCalibStep(2);
 });
-saveCalib.addEventListener('click', () => { saveRects(); setEditing(false); calibModal.style.display='none'; try{ updateOnboardingUI(); openOnboarding(); }catch{} });
+saveCalib.addEventListener('click', () => { saveRects(); closeCalibrationWizard(true); });
 clearCalib.addEventListener('click', () => { clearRects(); setEditing(false); positionRects(); try{ updateOnboardingUI(); openOnboarding(); }catch{} });
+
+// 校准视频弹窗：打开/关闭与播放控制（动态查询，避免脚本早于DOM渲染）
+openCalibVideo?.addEventListener('click', ()=>{
+  const modal = document.getElementById('calibVideoModal');
+  const video = document.getElementById('calibVideo');
+  if (modal){
+    showModal(modal);
+    try{ video?.play(); }catch{}
+  }
+});
+document.addEventListener('click', (e)=>{
+  const target = e.target;
+  // 点击遮罩关闭
+  if (target && target.id === 'calibVideoModal'){
+    const modal = document.getElementById('calibVideoModal');
+    const video = document.getElementById('calibVideo');
+    try{ video?.pause(); if (video) video.currentTime = 0; }catch{}
+  if (modal) hideModal(modal);
+  }
+  // 点击关闭按钮
+  if (target && target.id === 'closeCalibVideo'){
+    const modal = document.getElementById('calibVideoModal');
+    const video = document.getElementById('calibVideo');
+    try{ video?.pause(); if (video) video.currentTime = 0; }catch{}
+  if (modal) hideModal(modal);
+  }
+});
+
+function openCalibrationWizard(){
+  showModal(calibModal);
+  // 默认进入第1步
+  gotoCalibStep(1);
+  setEditing(false); // 第1步不允许编辑
+  // 从现在起不再保留或自动加载校准图片缓存
+  try { localStorage.removeItem('avatarCalibImage'); } catch {}
+}
+
+function closeCalibrationWizard(backToOnboarding){
+  hideModal(calibModal);
+  setEditing(false);
+  if (backToOnboarding){ try{ updateOnboardingUI(); openOnboarding(); }catch{} }
+}
+
+function gotoCalibStep(n){
+  if (!calibStep1 || !calibStep2) return;
+  if (n===1){
+    calibStep1.style.display='block';
+    calibStep2.style.display='none';
+  } else {
+    calibStep1.style.display='none';
+    calibStep2.style.display='block';
+    setEditing(true); // 进入第2步启用编辑
+    // 确保尺寸/位置刷新
+    requestAnimationFrame(()=>{ setupCalibLayerSize(); positionRects(); });
+  }
+}
 
 async function fileToImage(fileOrBlob) {
   return new Promise((resolve, reject) => {
@@ -393,6 +489,7 @@ async function startRecognition(file){
   const saved = localStorage.getItem('avatarSideRects');
   if (!saved) { roundTip.textContent = '未找到校准数据，请先完成校准。'; calibModal.style.display='flex'; setEditing(true); return; }
   if (!myP || !bpMode) { roundTip.textContent = '请先选择“我是谁(P)”与“BP模式”。'; openOnboarding(); return; }
+  showLoading(true);
   try {
     const blobs = await cropByRects(file);
     const fd = new FormData();
@@ -411,7 +508,16 @@ async function startRecognition(file){
     }
   } catch (e) {
     roundTip.textContent = '裁剪/识别失败: ' + e;
+  } finally {
+    showLoading(false);
   }
+}
+
+function showLoading(show){
+  const el = document.getElementById('loadingOverlay');
+  if (!el) return;
+  if (show) el.classList.add('show');
+  else el.classList.remove('show');
 }
 
 function mapResultsToP(batchJson) {
@@ -492,9 +598,9 @@ function buildChips(){
 }
 buildChips();
 
-function openPicker(p){ pickTargetP = p; picker.style.display='flex'; renderPickerGrid(); }
-closePicker.addEventListener('click', ()=> picker.style.display='none');
-picker.addEventListener('click', (e)=> { if (e.target===picker) picker.style.display='none'; });
+function openPicker(p){ pickTargetP = p; showModal(picker); renderPickerGrid(); }
+closePicker.addEventListener('click', ()=> hideModal(picker));
+picker.addEventListener('click', (e)=> { if (e.target===picker) hideModal(picker); });
 searchInput.addEventListener('input', renderPickerGrid);
 
 function matchBySearch(name){
@@ -642,7 +748,7 @@ function renderCatalog(){
     if (isGlobalBlocked) div.classList.add('disabled');
     const tags = usedPs.length>0
       ? (bpMode==='global'
-          ? `<div class="tags"><span class="tag">已被 ${usedPs.map(p=>`P${p}`).join(' / ')} 使用</span></div>`
+          ? `<div class="tags"><span class="tag"> ${usedPs.map(p=>`P${p}`).join(' / ')} </span></div>`
           : `<div class="tags">${usedPs.map(p=>`<span class="tag">P${p}</span>`).join('')}</div>`)
       : '';
     div.innerHTML = `<img src="${info['头像']||''}" alt="${name}"><div class="nm">${name}</div>${tags}`;
@@ -683,9 +789,9 @@ function renderHistory(){
   host.innerHTML = html;
 }
 
-openHistory?.addEventListener('click', ()=>{ renderHistory(); historyModal.style.display='flex'; });
-historyModal.addEventListener('click', (e)=>{ if (e.target===historyModal) historyModal.style.display='none'; });
-historyModal.querySelector('#closeHistory').addEventListener('click', ()=> historyModal.style.display='none');
+openHistory?.addEventListener('click', ()=>{ renderHistory(); showModal(historyModal); });
+historyModal.addEventListener('click', (e)=>{ if (e.target===historyModal) hideModal(historyModal); });
+historyModal.querySelector('#closeHistory').addEventListener('click', ()=> hideModal(historyModal));
 
 // 角色详情弹窗（图鉴点击）
 const roleModal = document.createElement('div');
@@ -698,7 +804,7 @@ roleModal.innerHTML = `
         <h3 id="roleTitle" style="margin:0"></h3>
       </div>
       <div style="display:flex;gap:8px">
-  <button id="removeRoleUsage" class="danger">清除此角色至当前轮的BP记录</button>
+  <button id="removeRoleUsage" class="danger">将此角色设为可用</button>
         <button id="closeRole" class="ghost">关闭</button>
       </div>
     </div>
@@ -713,9 +819,9 @@ function openRoleDetail(name){
   roleModal.querySelector('#roleTitle').textContent = name;
   roleModal.querySelector('#roleAvatar').src = info['头像']||'';
   renderRoleUsageList(name);
-  roleModal.style.display = 'flex';
+  showModal(roleModal);
 }
-function closeRoleDetail(){ roleModal.style.display='none'; roleModalCurrentName=''; }
+function closeRoleDetail(){ hideModal(roleModal); roleModalCurrentName=''; }
 roleModal.addEventListener('click', (e)=>{ if (e.target===roleModal) closeRoleDetail(); });
 roleModal.querySelector('#closeRole').addEventListener('click', closeRoleDetail);
 

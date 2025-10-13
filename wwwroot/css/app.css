@@ -45,6 +45,7 @@ button:active{transform: translateY(0) scale(0.98)}
 button.primary{border-color: rgba(52,152,219,.45); background: linear-gradient(180deg, rgba(52,152,219,.25), rgba(0,0,0,.18));}
 button.ghost{background:transparent}
 button.danger{border-color: rgba(255,83,83,.45); background: linear-gradient(180deg, rgba(255,83,83,.22), rgba(0,0,0,.18));}
+button[aria-disabled="true"], button[disabled]{opacity:.5; cursor:not-allowed; pointer-events:auto}
 
 label.file{position:relative; overflow:hidden;}
 label.file input[type=file]{position:absolute; inset:0; opacity:0; cursor:pointer}
@@ -80,7 +81,7 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .log{background:#0a0b0e; color:#cbd5e1; border-radius:10px; padding:10px; border:1px solid var(--border)}
 
 /* 角色选择器 */
-.modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); z-index:1000}
+.modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); z-index:1000; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px)}
 .modal .dialog{width:min(1000px, 92vw); max-height: 84vh; overflow:auto; background: rgba(24,24,28,0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow: 0 12px 48px rgba(0,0,0,.35); animation: fadeIn .25s ease}
 .picker-controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px}
 .chips{display:flex; gap:6px; flex-wrap:wrap}
@@ -116,6 +117,19 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
   to { opacity:1; transform: translateY(0); }
 }
 
+/* 弹窗打开时禁用页面滚动 */
+body.modal-open{overflow:hidden}
+
+/* 引导未完成提示：红色闪烁边框抖动 */
+.shake-error{border-color: rgba(255,83,83,.85) !important; box-shadow: 0 0 0 2px rgba(255,83,83,.35) inset; animation: shake .32s ease-in-out 0s 2}
+@keyframes shake {
+  0%{transform: translateX(0)}
+  25%{transform: translateX(-3px)}
+  50%{transform: translateX(3px)}
+  75%{transform: translateX(-2px)}
+  100%{transform: translateX(0)}
+}
+
 /* 手机端适配 */
 @media (max-width: 768px){
   .container{padding:12px}
@@ -126,4 +140,23 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
   .cardc img{height:84px}
   .catalog .citem img{width:56px; height:56px}
   .picker-controls{flex-direction: column; align-items: stretch}
+
+  /* 校准：缩略槽位 4 个一行显示，缩小尺寸 */
+  #calibSlots{flex-wrap: nowrap !important; gap:6px !important}
+  #calibSlots button{padding:4px}
+  #calibSlots canvas{width:56px; height:56px}
+  #calibSlots span{font-size:10px}
+
+  /* 预览区域在手机端更高一些，便于放大显示 */
+  #canvasWrap{position:relative; display:block; max-width:100%; min-height:320px}
 }
+
+/* 桌面端确保预览容器基础布局（不依赖 .preview 包裹） */
+#canvasWrap{position:relative; display:block; max-width:100%}
+
+/* 加载遮罩与转圈 */
+.loading-overlay{position:fixed; inset:0; background: rgba(0,0,0,0.55); display:none; align-items:center; justify-content:center; flex-direction:column; gap:12px; z-index:2000}
+.loading-overlay.show{display:flex}
+.spinner{width:48px; height:48px; border:4px solid rgba(255,255,255,0.25); border-top-color: var(--primary); border-radius:50%; animation: spin 0.9s linear infinite}
+.loading-text{color:#e6e6e6; font-size:14px}
+@keyframes spin { to { transform: rotate(360deg); } }

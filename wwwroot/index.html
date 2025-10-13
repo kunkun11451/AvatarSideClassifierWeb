@@ -35,7 +35,7 @@
       <section class="panel">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
           <div>
-            <h3 style="margin:0">当前结果</h3>
+            <h3 style="margin:0">当前结果 <span id="roundNo" class="muted" style="font-size:0.9em;font-weight:400;margin-left:8px"></span></h3>
             <div id="roundTip" class="muted"></div>
           </div>
           <div>
@@ -51,6 +51,7 @@
       <!-- 角色选择器 Modal -->
       <div id="picker" class="modal">
         <div class="dialog">
+          <button id="closePickerX" class="modal-x" aria-label="关闭" title="关闭">×</button>
           <div class="picker-controls">
             <input type="text" id="searchInput" placeholder="搜索角色（支持拼音首字母：lxz→旅行者）" />
             <div class="chips" id="eleChips"></div>
@@ -64,6 +65,7 @@
       <!-- 入门引导弹窗：位置矫正 + 我是谁 + BP模式，全部完成后才能进入 -->
       <div id="onboardingModal" class="modal" style="display:none">
         <div class="dialog">
+          <button id="closeOnboardingX" class="modal-x" aria-label="关闭" title="关闭">×</button>
           <h3 style="margin-top:0">开始前的准备</h3>
           <div style="display:flex;flex-direction:column;gap:14px">
             <div id="calibBlock" style="padding:10px;border:1px solid var(--border);border-radius:8px">
@@ -106,6 +108,7 @@
       <!-- 校准弹窗（两步式） -->
       <div id="calibModal" class="modal">
         <div class="dialog">
+          <button id="closeCalibX" class="modal-x" aria-label="关闭" title="关闭">×</button>
           <h3>位置校准</h3>
 
           <!-- 步骤1：仅上传整屏截图 -->
@@ -153,6 +156,7 @@
     <!-- 校准视频教程弹窗 -->
     <div id="calibVideoModal" class="modal" style="display:none">
       <div class="dialog">
+        <button id="closeCalibVideoX" class="modal-x" aria-label="关闭" title="关闭">×</button>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
           <h3 style="margin:0">位置校准视频教程</h3>
           <button id="closeCalibVideo" class="ghost">关闭</button>

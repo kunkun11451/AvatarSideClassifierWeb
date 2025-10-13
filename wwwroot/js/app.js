@@ -36,6 +36,7 @@ const calibSlots = document.getElementById('calibSlots');
 const picker = document.getElementById('picker');
 const pickerGrid = document.getElementById('pickerGrid');
 const closePicker = document.getElementById('closePicker');
+const closePickerX = document.getElementById('closePickerX');
 const searchInput = document.getElementById('searchInput');
 const eleChips = document.getElementById('eleChips');
 const wpnChips = document.getElementById('wpnChips');
@@ -44,6 +45,7 @@ const catalogGrid = document.getElementById('catalogGrid');
 const openHistory = document.getElementById('openHistory');
 const pasteImageTop = document.getElementById('pasteImageTop');
 const pasteImageCalib = document.getElementById('pasteImageCalib');
+const roundNoEl = document.getElementById('roundNo');
 
 // 4 个矩形的归一化配置 [0..1]
 let rects = [
@@ -100,6 +102,7 @@ function resetSession(showOnboarding=true) {
   clearedBefore = {};
   renderRoundPanel([]);
   roundTip.textContent = '请先选择“我是谁(P)”与“BP模式”，并完成校准。';
+  renderRoundNo();
   if (showOnboarding) openOnboarding();
   renderCatalog();
 }
@@ -153,6 +156,7 @@ function openOnboarding(){
   showModal(onboardingModal);
 }
 function closeOnboarding(){ hideModal(onboardingModal); }
+document.getElementById('closeOnboardingX')?.addEventListener('click', closeOnboarding);
 
 // P select
 if (pButtons){
@@ -434,6 +438,7 @@ if (openCalibrate){
 }
 calibModal.addEventListener('click', (e)=>{ if (e.target===calibModal) { closeCalibrationWizard(true); } });
 closeCalib.addEventListener('click', ()=>{ closeCalibrationWizard(true); });
+document.getElementById('closeCalibX')?.addEventListener('click', ()=>{ closeCalibrationWizard(true); });
 calibFile.addEventListener('change', ()=>{
   const f = calibFile.files?.[0]; if (!f) return; 
   const url = URL.createObjectURL(f); 
@@ -468,6 +473,12 @@ document.addEventListener('click', (e)=>{
     const video = document.getElementById('calibVideo');
     try{ video?.pause(); if (video) video.currentTime = 0; }catch{}
   if (modal) hideModal(modal);
+  }
+  if (target && target.id === 'closeCalibVideoX'){
+    const modal = document.getElementById('calibVideoModal');
+    const video = document.getElementById('calibVideo');
+    try{ video?.pause(); if (video) video.currentTime = 0; }catch{}
+    if (modal) hideModal(modal);
   }
 });
 
@@ -563,6 +574,39 @@ function showLoading(show){
   else el.classList.remove('show');
 }
 
+// 简单 HTML 转义，避免插入文本造成 XSS
+function escapeHtml(str){
+  return String(str||'')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function copyToClipboard(text){
+  try{
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch{}
+  // 回退方案
+  try{
+    const ta = document.createElement('textarea');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    return true;
+  }catch{
+    return false;
+  }
+}
+
 function mapResultsToP(batchJson) {
   const centers = rects.map((r, i)=>({ i, yc: r.y + r.h/2 }));
   centers.sort((a,b)=> a.yc - b.yc);
@@ -590,7 +634,20 @@ function checkConflictsAndComposeRound(resultsByP){
     const raw = r.nameCn || r.display || r.predicted || '';
     const name = normalizeName(raw);
     const conflict = (bpMode==='personal') ? usedBy[p].has(name) : usedGlobal.has(name);
-    const reason = conflict ? (bpMode==='personal' ? `P${p} 已使用过 ${name}` : `${name} 已被使用（全局BP）`) : '';
+    let reason = '';
+    if (conflict){
+      if (bpMode==='personal'){
+        reason = `P${p} 已使用过 ${name}`;
+      } else {
+        const info = getLastUsageInfo(name, false);
+        if (info){
+          const psTxt = info.ps.map(x=>`${x}P`).join(' / ');
+          reason = `${name} 在第${info.round}轮 已被 ${psTxt} 使用`;
+        } else {
+          reason = `${name} 已被使用（全局BP）`;
+        }
+      }
+    }
     const avatar = (window.characterData && window.characterData[name]?.头像) || '';
     round.push({ p, name, avatarUrl: avatar, from:'auto', confidence: r.confidence, conflict, reason, editable: true });
   }
@@ -600,6 +657,7 @@ function checkConflictsAndComposeRound(resultsByP){
 function commitUsage(round){
   // 仅追加历史；usedBy/usedGlobal 由 rebuildUsageSetsFromRounds 基于 clearedBefore 自动重建
   rounds.push({ at: new Date().toISOString(), entries: round.map(({p,name,from,confidence})=>({p,name,from,confidence})) });
+  renderRoundNo();
 }
 
 function renderRoundPanel(round){
@@ -608,13 +666,18 @@ function renderRoundPanel(round){
     const e = round.find(x=>x.p===p) || { p, name:'', conflict:false, reason:'待识别', avatarUrl:'' };
     const div = document.createElement('div');
     div.className = 'slot' + (e.conflict? ' conflict' : '');
+    const reasonText = e.reason || '';
+    const safeReason = escapeHtml(reasonText);
+    const copyable = e.conflict && reasonText;
     div.innerHTML = `
       <h4>P${p}</h4>
       <div style="display:flex; gap:10px; align-items:center;">
         ${e.avatarUrl? `<img class="avatar" src="${e.avatarUrl}" alt="${e.name}" />` : `<div class="avatar" style="display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border:1px dashed rgba(255,255,255,0.2);color:#aaa;">无</div>`}
         <div>
           <div class="name">${e.name || '——'}</div>
-          ${e.conflict? `<div class="conflict">⚠ ${e.reason}</div>`: ''}
+          ${e.conflict? `<div class="conflict">⚠ <span class="reason-text">${safeReason}</span>${copyable? ` <button class="copy-reason" data-text="${escapeHtml(reasonText)}" title="复制" style="border:none;background:transparent;cursor:pointer;line-height:1;display:inline-flex;align-items:center;">`+
+          `<svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2282"><path d="M704 202.666667a96 96 0 0 1 96 96v554.666666a96 96 0 0 1-96 96H213.333333A96 96 0 0 1 117.333333 853.333333V298.666667A96 96 0 0 1 213.333333 202.666667h490.666667z m0 64H213.333333A32 32 0 0 0 181.333333 298.666667v554.666666a32 32 0 0 0 32 32h490.666667a32 32 0 0 0 32-32V298.666667a32 32 0 0 0-32-32z" fill="#FFFFFF" p-id="2283"></path><path d="M277.333333 362.666667m32 0l298.666667 0q32 0 32 32l0 0q0 32-32 32l-298.666667 0q-32 0-32-32l0 0q0-32 32-32Z" fill="#FFFFFF" p-id="2284"></path><path d="M277.333333 512m32 0l298.666667 0q32 0 32 32l0 0q0 32-32 32l-298.666667 0q-32 0-32-32l0 0q0-32 32-32Z" fill="#FFFFFF" p-id="2285"></path><path d="M277.333333 661.333333m32 0l170.666667 0q32 0 32 32l0 0q0 32-32 32l-170.666667 0q-32 0-32-32l0 0q0-32 32-32Z" fill="#FFFFFF" p-id="2286"></path><path d="M320 138.666667h512A32 32 0 0 1 864 170.666667v576a32 32 0 0 0 64 0V170.666667A96 96 0 0 0 832 74.666667H320a32 32 0 0 0 0 64z" fill="#FFFFFF" p-id="2287"></path></svg>`+
+          `</button>` : ''}</div>`: ''}
           ${!e.name? `<div class="muted">${e.reason||''}</div>`: ''}
         </div>
       </div>
@@ -625,7 +688,32 @@ function renderRoundPanel(round){
     roundSlots.appendChild(div);
   }
   roundSlots.querySelectorAll('.pickBtn').forEach(btn=> btn.addEventListener('click', ()=> openPicker(parseInt(btn.dataset.p,10))));
+  // 绑定复制按钮
+  roundSlots.querySelectorAll('.copy-reason').forEach(btn => {
+    btn.addEventListener('click', async ()=>{
+      const t = btn.getAttribute('data-text') || '';
+      const ok = await copyToClipboard(t);
+      if (ok){
+        const old = btn.innerHTML;
+        // 切换为勾 SVG
+        btn.innerHTML = '<svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2607"><path d="M384 768c-12.8 0-21.333333-4.266667-29.866667-12.8l-213.333333-213.333333c-17.066667-17.066667-17.066667-42.666667 0-59.733334s42.666667-17.066667 59.733333 0L384 665.6 823.466667 226.133333c17.066667-17.066667 42.666667-17.066667 59.733333 0s17.066667 42.666667 0 59.733334l-469.333333 469.333333c-8.533333 8.533333-17.066667 12.8-29.866667 12.8z" fill="#FFFFFF" p-id="2608"></path></svg>';
+        btn.setAttribute('title', '已复制');
+        setTimeout(()=>{
+          // 还原为复制 SVG
+          btn.innerHTML = old;
+          btn.setAttribute('title','复制');
+        }, 1200);
+      }
+    });
+  });
   if (!myP || !bpMode) roundTip.textContent = '提示：先选择“我是谁(P)”与“BP模式”。'; else roundTip.textContent = '';
+}
+
+function renderRoundNo(){
+  if (!roundNoEl) return;
+  const n = rounds.length;
+  if (n<=0){ roundNoEl.textContent = '(第1轮)'; return; }
+  roundNoEl.textContent = `(第${n}轮)`;
 }
 
 const ELEMENTS = ['冰','火','水','雷','草','风','岩'];
@@ -644,6 +732,7 @@ buildChips();
 
 function openPicker(p){ pickTargetP = p; showModal(picker); renderPickerGrid(); }
 closePicker.addEventListener('click', ()=> hideModal(picker));
+closePickerX?.addEventListener('click', ()=> hideModal(picker));
 picker.addEventListener('click', (e)=> { if (e.target===picker) hideModal(picker); });
 searchInput.addEventListener('input', renderPickerGrid);
 
@@ -651,11 +740,18 @@ function matchBySearch(name){
   const term = (searchInput.value||'').trim().toLowerCase();
   if (!term) return true;
   if (name.toLowerCase().includes(term)) return true;
-  const p = window.pinyinPro?.pinyin?.(name, { pattern:'first', toneType:'none', multiple:true });
-  if (p){
-    const initials = p.split(' ').map(s=> s[0]||'').join('');
-    if (initials.includes(term)) return true;
-  }
+  try{
+    const p = window.pinyinPro?.pinyin?.(name, { pattern:'first', toneType:'none', multiple:true });
+    if (p){
+      const initials = p.split(' ').map(s=> s[0]||'').join('');
+      if (initials.includes(term)) return true;
+    }
+    const full = window.pinyinPro?.pinyin?.(name, { pattern:'pinyin', toneType:'none', multiple:true, type:'array' });
+    if (Array.isArray(full)){
+      const joined = full.join('').toLowerCase();
+      if (joined.includes(term)) return true;
+    }
+  }catch{}
   return false;
 }
 
@@ -738,7 +834,20 @@ function applyManual(p, name){
     const avatarUrl = nm? (window.characterData[nm]?.头像||'') : '';
     if (!nm) return { p:e.p, name:'', avatarUrl:'', from: (e.p===p?'manual':'auto'), conflict:false, reason:'未选择', editable:true };
     const conflict = (bpMode==='personal') ? priorUsedBy[e.p].has(nm) : usedAnyPrev.has(nm);
-    const reason = conflict ? (bpMode==='personal' ? `P${e.p} 已使用过 ${nm}` : `${nm} 已被使用（全局BP）`) : '';
+    let reason = '';
+    if (conflict){
+      if (bpMode==='personal'){
+        reason = `P${e.p} 已使用过 ${nm}`;
+      } else {
+        const info = getLastUsageInfo(nm, true);
+        if (info){
+          const psTxt = info.ps.map(x=>`${x}P`).join(' / ');
+          reason = `${nm} 在第${info.round}轮已被 ${psTxt} 使用`;
+        } else {
+          reason = `${nm} 已被使用（全局BP）`;
+        }
+      }
+    }
     return { p:e.p, name:nm, avatarUrl, from:(e.p===p?'manual':'auto'), conflict, reason, editable:true };
   });
 
@@ -778,6 +887,25 @@ function getUsedPsForBP(name){
     }
   }
   return Array.from(ps).sort((a,b)=>a-b);
+}
+
+// 获取最近一次（不含被清除前的）使用信息：返回 { round: 最近轮次号(1-based), ps: [P...] }
+function getLastUsageInfo(name, excludeLast=false){
+  if (!name) return null;
+  const cutoff = (clearedBefore[name] ?? -1);
+  const end = rounds.length - (excludeLast? 1 : 0);
+  for (let idx = end - 1; idx >= 0; idx--){
+    if (idx <= cutoff) break;
+    const r = rounds[idx];
+    const ps = [];
+    for (const e of (r.entries||[])){
+      if (e && e.name===name && e.p) ps.push(e.p);
+    }
+    if (ps.length){
+      return { round: idx + 1, ps: ps.sort((a,b)=>a-b) };
+    }
+  }
+  return null;
 }
 
 function renderCatalog(){
@@ -916,7 +1044,20 @@ function refreshCurrentPanelFromLastRound(){
     if (!nm) entries.push({ p, name:'', avatarUrl:'', from:e.from||'auto', conflict:false, reason:'未选择', editable:true });
     else {
       const conflict = (bpMode==='personal') ? priorUsedBy[p].has(nm) : usedAnyPrev.has(nm);
-      const reason = conflict ? (bpMode==='personal' ? `P${p} 已使用过 ${nm}` : `${nm} 已被使用（全局BP）`) : '';
+      let reason = '';
+      if (conflict){
+        if (bpMode==='personal'){
+          reason = `P${p} 已使用过 ${nm}`;
+        } else {
+          const info = getLastUsageInfo(nm, true);
+          if (info){
+            const psTxt = info.ps.map(x=>`${x}P`).join(' / ');
+            reason = `${nm} 在第${info.round}轮已被 ${psTxt} 使用`;
+          } else {
+            reason = `${nm} 已被使用（全局BP）`;
+          }
+        }
+      }
       entries.push({ p, name:nm, avatarUrl, from:e.from||'auto', conflict, reason, editable:true });
     }
   }

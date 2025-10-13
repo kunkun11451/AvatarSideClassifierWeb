@@ -42,6 +42,8 @@ const wpnChips = document.getElementById('wpnChips');
 // catalog and history
 const catalogGrid = document.getElementById('catalogGrid');
 const openHistory = document.getElementById('openHistory');
+const pasteImageTop = document.getElementById('pasteImageTop');
+const pasteImageCalib = document.getElementById('pasteImageCalib');
 
 // 4 个矩形的归一化配置 [0..1]
 let rects = [
@@ -239,15 +241,6 @@ function bindEditorEvents() {
   // 点击放置 100×100 的矫正框
   const root = calibLayer || canvasWrap;
 
-  // 点击现有框，切换为当前活动框（事件委托，避免刷新后丢失绑定）
-  root.addEventListener('click', (e)=>{
-    const el = e.target.closest('.rect');
-    if (!el) return;
-    activeRectIndex = parseInt(el.getAttribute('data-idx')) || 0;
-    highlightActiveRect(activeRectIndex);
-    e.stopPropagation();
-  });
-
   // 点击背景：若尚未设置该活动框则创建，否则移动该活动框（不再生成新的框）
   root.addEventListener('click', (e)=>{
     if (!editing) return;
@@ -377,6 +370,41 @@ window.addEventListener('paste', async (e) => {
       }
     }
   }
+});
+
+async function getClipboardImage(){
+  // 首选异步 Clipboard API（需 HTTPS/用户手势），回退到 navigator.clipboard.readText 无法包含图像
+  if (navigator.clipboard && navigator.clipboard.read){
+    try{
+      const items = await navigator.clipboard.read();
+      for (const item of items){
+        for (const type of item.types){
+          if (type.startsWith('image/')){
+            const blob = await item.getType(type);
+            return new File([blob], 'pasted.png', { type: blob.type || 'image/png' });
+          }
+        }
+      }
+    }catch{}
+  }
+  // 不可用时返回 null，让调用方提示用户使用 Ctrl+V
+  return null;
+}
+
+// 顶栏：从剪贴板粘贴并直接走识别
+pasteImageTop?.addEventListener('click', async ()=>{
+  const f = await getClipboardImage();
+  if (!f){ roundTip.textContent = '无法读取剪贴板图像，请先复制图片后再试。'; return; }
+  currentFile = f; fileEl.value=''; await startRecognition(currentFile);
+});
+
+// 校准步骤1：从剪贴板粘贴并进入步骤2
+pasteImageCalib?.addEventListener('click', async ()=>{
+  const f = await getClipboardImage();
+  if (!f){ try{ alert('无法读取剪贴板图像，请先复制图片（或使用浏览器允许读取剪贴板权限）。'); }catch{} return; }
+  const url = URL.createObjectURL(f);
+  showImageInEditor(url);
+  gotoCalibStep(2);
 });
 
 function setEditing(v) {

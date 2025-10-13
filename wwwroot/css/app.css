@@ -53,6 +53,8 @@ label.file span{display:inline-block; padding:8px 12px; border-radius:10px; bord
 
 select,input[type=text]{border:1px solid var(--border); background: rgba(255,255,255,.06); color:var(--text); border-radius:8px; padding:6px 10px}
 .hint{color:var(--muted); margin:6px 0 0}
+.hint a.link{color:var(--primary); text-decoration:none}
+.hint a.link:hover{text-decoration:underline}
 
 /* 预览与校准 */
 .preview #canvasWrap{position:relative; display:inline-block; max-width:100%}

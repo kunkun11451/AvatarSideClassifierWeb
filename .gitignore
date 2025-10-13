@@ -1,0 +1,55 @@
+# .NET / Visual Studio
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Aa]rtifacts/
+
+# Configurations
+[Dd]ebug/
+[Rr]elease/
+
+# Publish output
+publish/
+**/publish/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+# Auto-generated props/targets
+*.nuget.props
+*.nuget.targets
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# Static web assets (usually under obj/bin but keep explicit just in case)
+staticwebassets/
+staticwebassets.*.json
+
+# OS generated files
+.DS_Store
+Thumbs.db

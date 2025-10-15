@@ -132,7 +132,7 @@ function resetSession(showOnboarding=true) {
   renderCatalog();
 }
 resetRecords.addEventListener('click', async ()=>{
-  const ok = await showConfirm('此操作将清空所有轮次与使用记录，且不可恢复。确定继续？');
+  const ok = await showConfirm('此操作将清空所有记录，重新选择P数与BP模式。确定继续？');
   if (!ok) return;
   resetSession(true);
   // 若当前位于“历史记录”视图，立即刷新为空态

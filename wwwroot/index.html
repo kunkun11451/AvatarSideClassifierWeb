@@ -6,6 +6,7 @@
     <title>BP记录器</title>
     <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
     <link rel="stylesheet" href="/css/app.css" />
+    <script src="https://unpkg.com/pinyin-pro"></script>
   </head>
   <body>
     <header class="app-header">
@@ -16,36 +17,61 @@
 
     <main class="container">
       <section class="panel">
-        <div class="toolbar">
-          <div class="group">
-            <label class="file">
-              <input type="file" id="file" accept="image/*" />
-              <span>上传游戏内全屏截图</span>
-            </label>
-            <button id="pasteImageTop" class="ghost">从剪贴板粘贴（或直接 Ctrl+V）</button>
-          </div>
-          <div class="group">
-            <button id="resetRecords" class="danger">重置记录</button>
-          </div>
+        <div class="panel-header">
+          <h2 style="margin:0">上传截图与识别</h2>
         </div>
-        <p class="hint">上传图片后将直接按“已保存的校准”裁剪 4 张头像并识别。</p>
-  <p class="hint">识别通过调用服务器识别模型 <a href="https://unhappycar.tech/swagger" target="_blank" rel="noopener" class="link">api</a> 实现，因此需要联网使用且可能有速率限制。本地部署请查看 <a href="https://github.com/kunkun11451/AvatarSideClassifierWeb" target="_blank" rel="noopener" class="link">Github项目</a></p>
-      </section>
+        <div class="panel-actions">
+          <input type="file" id="file" accept="image/*" style="display:none" />
+          <button id="btnSelectImage" class="btn-glass btn-glass-primary" title="选择图片">选择图片</button>
+          <button id="pasteImageTop" class="btn-glass btn-glass-primary" title="从剪贴板粘贴（或 Ctrl+V）">从剪贴板粘贴</button>
+          <button id="resetRecords" class="btn-glass btn-glass-danger" title="清除全部记录">重置记录</button>
+        </div>
+        <div class="upload-hints">
+          <p class="hint" style="margin-top:8px">上传的截图将按“已保存的校准”自动裁剪 4 张头像并识别，通过Ctrl+V快捷键可直接上传剪贴板图片进行识别。</p>
+          <p class="hint" style="margin-top:8px">识别服务通过调用服务器识别模型 <a href="https://unhappycar.tech/swagger" target="_blank" rel="noopener" class="link">API</a> 实现，本地部署请查看 <a href="https://github.com/kunkun11451/AvatarSideClassifierWeb" target="_blank" rel="noopener" class="link">Github项目</a>。</p>
+        </div>
 
-      <section class="panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-          <div>
-            <h3 style="margin:0">当前结果 <span id="roundNo" class="muted" style="font-size:0.9em;font-weight:400;margin-left:8px"></span></h3>
+        <!-- 结果标题与轮次展示（居中） -->
+          <div class="round-header">
+            <h2 class="round-title">当前结果</h2>
+            <div id="roundNo" class="round-no muted"></div>
             <div id="roundTip" class="muted"></div>
           </div>
-          <div>
-            <button id="openHistory" class="ghost">查看历史</button>
-          </div>
-        </div>
-        <div class="slots" id="roundSlots" style="margin-top:10px"></div>
+          <div class="slots" id="roundSlots" style="margin-top:10px"></div>
+            <div class="radio-inputs" id="viewSwitcher" role="tablist" aria-label="视图切换" style="margin:12px auto 0;">
+              <label class="radio" role="presentation">
+                <input type="radio" name="viewmode" value="overview" aria-controls="overviewSection" aria-label="状态总览" />
+                <span class="radio-item">状态总览</span>
+              </label>
+              <label class="radio" role="presentation">
+                <input type="radio" name="viewmode" value="history" checked aria-controls="historySection" aria-label="历史记录" />
+                <span class="radio-item">历史记录</span>
+              </label>
+              <label class="radio" role="presentation">
+                <input type="radio" name="viewmode" value="random" aria-controls="randomSection" aria-label="随机工具" />
+                <span class="radio-item">随机工具</span>
+              </label>
+            </div>
 
-        <h3 style="margin-top:16px">状态图鉴</h3>
-        <div id="catalogGrid" class="catalog"></div>
+        <section id="overviewSection" data-view="overview" style="display:none">
+          <h2 style="margin-top:16px">状态总览</h2>
+          <div class="picker-controls" id="catalogControls" style="margin-bottom:8px">
+            <input type="text" id="catalogSearchInput" placeholder="搜索角色（支持拼音首字母：lxz→旅行者）" />
+            <div class="filter-container" id="catalogEleFilters"></div>
+            <div class="filter-container" id="catalogWpnFilters"></div>
+          </div>
+          <div id="catalogGrid" class="catalog"></div>
+        </section>
+        <section id="historySection" data-view="history">
+          <h2 style="margin-top:16px">历史记录</h2>
+          <div id="historyContent" class="history-container" style="margin-top:10px"></div>
+        </section>
+
+        <section id="randomSection" data-view="random" style="display:none">
+          <h2 style="margin-top:16px">随机工具</h2>
+          <p class="hint" style="text-align:center;margin:6px 0 12px">可自定义多个随机抽取卡片，数据保存在本地缓存。</p>
+          <div id="toolsGrid" class="tools-grid"></div>
+        </section>
       </section>
 
       <!-- 角色选择器 Modal -->
@@ -53,10 +79,11 @@
         <div class="dialog">
           <button id="closePickerX" class="modal-x" aria-label="关闭" title="关闭">×</button>
           <div class="picker-controls">
+            <h2>调整角色</h2>
             <input type="text" id="searchInput" placeholder="搜索角色（支持拼音首字母：lxz→旅行者）" />
-            <div class="chips" id="eleChips"></div>
-            <div class="chips" id="wpnChips"></div>
-            <button id="closePicker">关闭</button>
+            <button id="closePicker" style="display:none">关闭</button>
+            <div class="filter-container" id="eleFilters"></div>
+            <div class="filter-container" id="wpnFilters"></div>
           </div>
           <div id="pickerGrid" class="grid"></div>
         </div>
@@ -64,9 +91,8 @@
 
       <!-- 入门引导弹窗：位置矫正 + 我是谁 + BP模式，全部完成后才能进入 -->
       <div id="onboardingModal" class="modal" style="display:none">
-        <div class="dialog">
-          <button id="closeOnboardingX" class="modal-x" aria-label="关闭" title="关闭">×</button>
-          <h3 style="margin-top:0">开始前的准备</h3>
+        <div class="dialog onboarding-dialog">
+          <h2 style="margin-top:0">开始前的准备</h2>
           <div style="display:flex;flex-direction:column;gap:14px">
             <div id="calibBlock" style="padding:10px;border:1px solid var(--border);border-radius:8px">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
@@ -107,37 +133,44 @@
 
       <!-- 校准弹窗（两步式） -->
       <div id="calibModal" class="modal">
-        <div class="dialog">
+        <div class="dialog calib-dialog">
           <button id="closeCalibX" class="modal-x" aria-label="关闭" title="关闭">×</button>
-          <h3>位置校准</h3>
+          <h2>位置校准</h2>
 
           <!-- 步骤1：仅上传整屏截图 -->
-          <div id="calibStep1">
-            <p class="hint">步骤 1/2：请先上传游戏内全屏截图</p>
-            <p class="hint">提示：上传当前设备的截图，屏幕中头像位置信息将存入缓存，方便以后直接使用。</p>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
-              <label class="file"><input type="file" id="calibFile" accept="image/*" /><span>选择校准截图</span></label>
-              <button id="pasteImageCalib" class="ghost">从剪贴板粘贴</button>
+          <div id="calibStep1" class="calib-step">
+            <h3 class="hint">步骤 1/2：</h3>
+            <h3 class="hint">在游戏内截取一张在4人多人模式下的全屏截图上传</h3>
+            <p class="hint">当前上传的截图将用于下一步定位裁剪4个头像的位置</p>
+            <p class="hint">后续使用时，识别将按当前设定的裁切位置进行裁剪，自动识别4个头像</p>
+            <div class="calib-btn-row calib-upload-row" style="margin-top: 10px;">
+              <input type="file" id="calibFile" accept="image/*" style="display:none" />
+              <button id="btnSelectCalib" class="btn-glass btn-glass-primary calib-select-btn">选择校准截图</button>
+              <button id="pasteImageCalib" class="btn-glass btn-glass-primary calib-paste-btn">从剪贴板粘贴</button>
             </div>
           </div>
 
           <!-- 步骤2：位置矫正与保存 -->
-          <div id="calibStep2" style="display:none">
-            <p class="hint">步骤 2/2：点击 4 个头像中心位置进行位置矫正（无顺序要求），详细请查看 <a href="#" id="openCalibVideo" class="link">视频教程</a>。</p>
-            <div id="calibSlots" style="display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap"></div>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
-              <button id="saveCalib" class="primary">保存校准</button>
-              <button id="clearCalib" class="ghost">清除校准</button>
-              <button id="closeCalib">关闭</button>
-            </div>
-            <div id="canvasWrap" class="hidden">
-              <div id="calibLayer" style="position:relative; transform-origin: 0 0;">
-                <img id="imgPrev" src="" alt="预览" style="display:block; width:100%; height:100%;" />
-                <div class="rect" data-idx="0"></div>
-                <div class="rect" data-idx="1"></div>
-                <div class="rect" data-idx="2"></div>
-                <div class="rect" data-idx="3"></div>
+          <div id="calibStep2" class="calib-step" style="display:none">
+            <h3 class="hint">步骤 2/2：点击 4 个头像中心位置确定裁剪位置（无顺序要求），详细请查看 <a href="#" id="openCalibVideo" class="link">视频教程</a>。</h3>
+            <div class="calib-layout">
+              <div class="calib-left">
+                <div id="calibSlots" class="calib-slots-vertical"></div>
               </div>
+              <div class="calib-right">
+                <div id="canvasWrap" class="hidden calib-preview-wrap">
+                  <div id="calibLayer" style="position:relative; transform-origin: 0 0;">
+                    <img id="imgPrev" src="" alt="预览" class="calib-preview-img" />
+                    <div class="rect" data-idx="0"></div>
+                    <div class="rect" data-idx="1"></div>
+                    <div class="rect" data-idx="2"></div>
+                    <div class="rect" data-idx="3"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="calib-footer">
+              <button id="saveCalib" class="btn-glass btn-glass-primary">保存校准</button>
             </div>
           </div>
         </div>

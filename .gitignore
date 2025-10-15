@@ -53,3 +53,5 @@ staticwebassets.*.json
 # OS generated files
 .DS_Store
 Thumbs.db
+
+wwwroot/robots.txt

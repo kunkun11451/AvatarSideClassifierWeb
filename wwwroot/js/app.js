@@ -471,6 +471,61 @@ pasteImageCalib?.addEventListener('click', async ()=>{
   gotoCalibStep(2);
 });
 
+// 新增：截取窗口按钮
+const captureWindowBtn = document.getElementById('captureWindowBtn');
+captureWindowBtn?.addEventListener('click', async () => {
+  if (!navigator.mediaDevices?.getDisplayMedia) {
+    showAlert('【此功能仅PC端】您的浏览器不支持屏幕捕捉功能，请使用以下浏览器（如 Chrome, Edge, Firefox）再试。');
+    return;
+  }
+
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        cursor: "never",
+        displaySurface: "window", 
+      },
+      audio: false,
+    });
+  } catch (err) {
+    // 用户取消选择或发生错误
+    console.log('屏幕捕捉被取消或失败:', err);
+    return;
+  }
+
+  const video = document.createElement('video');
+  video.srcObject = stream;
+
+  video.onloadedmetadata = () => {
+    video.play();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // 停止屏幕共享
+    stream.getTracks().forEach(track => track.stop());
+
+    canvas.toBlob(async (blob) => {
+      if (blob) {
+        const file = new File([blob], 'captured-window.png', { type: 'image/png' });
+        currentFile = file;
+        fileEl.value = '';
+        await startRecognition(currentFile);
+      }
+    }, 'image/png');
+  };
+});
+
+const openCaptureGuide = document.getElementById('openCaptureGuide');
+openCaptureGuide?.addEventListener('click', (e) => {
+  e.preventDefault();
+  showAlert('【此功能仅PC端】通过浏览器共享窗口功能自动截取画面，使用时游戏需要在无边框或窗口模式下，选择共享 窗口-原神 。捕获一帧游戏画面识别后将自动关闭共享。');
+});
+
 function setEditing(v) {
   editing = v; positionRects();
   // hint shown via UI; no log area now
@@ -671,7 +726,7 @@ function checkConflictsAndComposeRound(resultsByP){
   for (let p=1; p<=4; p++){
     const r = resultsByP[p];
     if (!r || !r.success){
-      round.push({ p, name:'', avatarUrl:'', from:'auto', confidence: r?.confidence ?? 0, conflict:false, reason:'未识别', editable:true });
+      round.push({ p, name:'', avatarUrl:'', from:'auto', confidence: r?.confidence ?? 0, conflict:false, reason:'识别失败，请检查上传的图片或位置校准', editable:true });
       continue;
     }
     const raw = r.nameCn || r.display || r.predicted || '';
@@ -1171,12 +1226,25 @@ function renderHistory(){
   const header = ['轮次','P1','P2','P3','P4'];
   let html = '<table class="history-table"><thead><tr>' + header.map(h=>`<th>${h}</th>`).join('') + '</tr></thead><tbody>';
   rounds.forEach((r, idx)=>{
-    const row = new Array(5).fill('');
-    row[0] = `第${idx+1}轮`;
+    html += `<tr><td>第${idx+1}轮</td>`;
     const names = {1:'',2:'',3:'',4:''};
     (r.entries||[]).forEach(e=>{ if (e && e.p) names[e.p] = e.name || ''; });
-    row[1] = names[1]||'——'; row[2] = names[2]||'——'; row[3] = names[3]||'——'; row[4] = names[4]||'——';
-    html += '<tr>' + row.map(c=>`<td>${c}</td>`).join('') + '</tr>';
+    
+    for (let p=1; p<=4; p++) {
+      const name = names[p];
+      if (name && name !== '——') {
+        const avatarUrl = (window.characterData && window.characterData[name]?.头像) || '';
+        html += `<td>
+                   <div class="history-cell-content">
+                     ${avatarUrl ? `<img src="${avatarUrl}" class="history-avatar" alt="${name}">` : ''}
+                     <span class="history-name">${escapeHtml(name)}</span>
+                   </div>
+                 </td>`;
+      } else {
+        html += `<td>——</td>`;
+      }
+    }
+    html += '</tr>';
   });
   html += '</tbody></table>';
   host.innerHTML = html;
@@ -1340,7 +1408,7 @@ function defaultTool(){
     id: crypto.randomUUID?.() || String(Date.now()+Math.random()), 
     title:'',
     content:'',
-    entries:[]
+    entries:[] 
   };
 }
 
@@ -1438,16 +1506,14 @@ function renderRandomTools(){
       <div class="actions-line">
         <div class="result" aria-live="polite">...</div>
         <div class="actions">
-          <button class="btn-glass btn-glass-primary btn-gen">${ICONS.draw||'生成'}</button>
-          <button class="btn-glass btn-glass-secondary btn-copy">${ICONS.copy||'复制'}</button>
+          <button class="btn-glass btn-glass-primary btn-gen-copy">抽取并复制</button>
         </div>
       </div>
     `;
     const elCount = card.querySelector('.num-count');
     const elMin = card.querySelector('.num-min');
     const elMax = card.querySelector('.num-max');
-    const btnGen = card.querySelector('.btn-gen');
-    const btnCopy = card.querySelector('.btn-copy');
+  const btnGenCopy = card.querySelector('.btn-gen-copy');
     const btnDup = card.querySelector('.btn-dup-template');
     const resultEl = card.querySelector('.result');
 
@@ -1460,7 +1526,7 @@ function renderRandomTools(){
     function readVals(){
       const c = Math.max(1, Math.min(10, parseInt(elCount.value||'1',10)));
       const mi = parseInt(elMin.value||'1',10);
-      const ma = parseInt(elMax.value||'100',10);
+      const ma = parseInt(elMax.value||'6',10);
       return { c, mi, ma };
     }
     function persistTpl(){
@@ -1469,10 +1535,18 @@ function renderRandomTools(){
       const ma = parseInt(elMax.value||'6',10);
       saveNumTemplate({ count: Number.isFinite(c)? c : tpl.count, min: Number.isFinite(mi)? mi : tpl.min, max: Number.isFinite(ma)? ma : tpl.max });
     }
-    elCount.addEventListener('input', persistTpl);
+    elCount.addEventListener('input', ()=>{
+      const val = parseInt(elCount.value, 10);
+      if (val > 10) {
+        elCount.value = '10';
+        elCount.classList.add('input-invalid');
+        setTimeout(()=> elCount.classList.remove('input-invalid'), 600);
+      }
+      persistTpl();
+    });
     elMin.addEventListener('input', persistTpl);
     elMax.addEventListener('input', persistTpl);
-    btnGen.addEventListener('click', ()=>{
+    function doGenerate(){
       const {c, mi, ma} = readVals();
       if (!Number.isFinite(mi) || !Number.isFinite(ma)) { showAlert('请输入有效的整数区间'); return; }
       if (mi > ma){ showAlert('最小值不能大于最大值'); return; }
@@ -1480,15 +1554,21 @@ function renderRandomTools(){
       resultEl.textContent = arr.join(' ');
       resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
       setTimeout(()=> resultEl.classList.remove('flash'), 700);
-    });
-    btnCopy.addEventListener('click', ()=>{
-      const txt = (resultEl.textContent||'').trim();
+      return resultEl.textContent.trim();
+    }
+    btnGenCopy.addEventListener('click', async ()=>{
+      const txt = doGenerate();
       if (!txt || txt==='...') return;
-      copyToClipboard(txt);
-      const prev = btnCopy.innerHTML; const prevClass = btnCopy.className;
-      btnCopy.className = prevClass.replace('btn-glass-secondary','btn-glass-success');
-      btnCopy.innerHTML = ICONS.check || '已复制';
-      setTimeout(()=>{ btnCopy.className = prevClass; btnCopy.innerHTML = ICONS.copy || '复制'; }, 1400);
+      await copyToClipboard(txt);
+      btnGenCopy.disabled = true;
+      const prev = btnGenCopy.innerHTML; const prevClass = btnGenCopy.className;
+      btnGenCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
+      btnGenCopy.innerHTML = ICONS.check || '已复制';
+      setTimeout(()=>{
+        btnGenCopy.className = prevClass;
+        btnGenCopy.innerHTML = '抽取并复制';
+        btnGenCopy.disabled = false;
+      }, 1400);
     });
     btnDup.addEventListener('click', ()=>{
       const {c, mi, ma} = readVals();
@@ -1518,16 +1598,14 @@ function renderRandomTools(){
       <div class="actions-line">
         <div class="result" aria-live="polite">...</div>
         <div class="actions">
-          <button class="btn-glass btn-glass-primary btn-gen">${ICONS.draw||'生成'}</button>
-          <button class="btn-glass btn-glass-secondary btn-copy">${ICONS.copy||'复制'}</button>
+          <button class="btn-glass btn-glass-primary btn-gen-copy" title="抽取并复制">抽取并复制</button>
         </div>
       </div>
     `;
     const elCount = card.querySelector('.num-count');
     const elMin = card.querySelector('.num-min');
     const elMax = card.querySelector('.num-max');
-    const btnGen = card.querySelector('.btn-gen');
-    const btnCopy = card.querySelector('.btn-copy');
+  const btnGenCopy = card.querySelector('.btn-gen-copy');
     const btnDup = card.querySelector('.btn-dup');
     const btnDel = card.querySelector('.btn-del');
     const resultEl = card.querySelector('.result');
@@ -1544,11 +1622,19 @@ function renderRandomTools(){
       it.max = Number.isFinite(ma)? ma : 100;
       saveNumCards(list);
     }
-    elCount.addEventListener('input', persist);
+    elCount.addEventListener('input', ()=>{
+      const val = parseInt(elCount.value, 10);
+      if (val > 10) {
+        elCount.value = '10';
+        elCount.classList.add('input-invalid');
+        setTimeout(()=> elCount.classList.remove('input-invalid'), 600);
+      }
+      persist();
+    });
     elMin.addEventListener('input', persist);
     elMax.addEventListener('input', persist);
 
-    btnGen.addEventListener('click', ()=>{
+    btnGenCopy.addEventListener('click', async ()=>{
       const c = Math.max(1, Math.min(10, parseInt(elCount.value||'1',10)));
       const mi = parseInt(elMin.value||'1',10);
       const ma = parseInt(elMax.value||'100',10);
@@ -1558,15 +1644,18 @@ function renderRandomTools(){
       resultEl.textContent = arr.join(' ');
       resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
       setTimeout(()=> resultEl.classList.remove('flash'), 700);
-    });
-    btnCopy.addEventListener('click', ()=>{
       const txt = (resultEl.textContent||'').trim();
       if (!txt || txt==='...') return;
-      copyToClipboard(txt);
-      const prev = btnCopy.innerHTML; const prevClass = btnCopy.className;
-      btnCopy.className = prevClass.replace('btn-glass-secondary','btn-glass-success');
-      btnCopy.innerHTML = ICONS.check || '已复制';
-      setTimeout(()=>{ btnCopy.className = prevClass; btnCopy.innerHTML = ICONS.copy || '复制'; }, 1400);
+      await copyToClipboard(txt);
+      btnGenCopy.disabled = true;
+      const prev = btnGenCopy.innerHTML; const prevClass = btnGenCopy.className;
+      btnGenCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
+      btnGenCopy.innerHTML = ICONS.check || '已复制';
+      setTimeout(()=>{
+        btnGenCopy.className = prevClass;
+        btnGenCopy.innerHTML = '抽取并复制';
+        btnGenCopy.disabled = false;
+      }, 1400);
     });
     btnDup.addEventListener('click', ()=>{
       const list = loadNumCards();
@@ -1605,8 +1694,7 @@ function renderRandomTools(){
       <div class="actions-line">
         <div class="result" aria-live="polite">...</div>
         <div class="actions">
-          <button class="btn-glass btn-glass-primary btn-draw" title="抽取">${ICONS.draw||'抽取'}</button>
-          <button class="btn-glass btn-glass-secondary btn-copy" title="复制结果">${ICONS.copy||'复制'}</button>
+          <button class="btn-glass btn-glass-primary btn-draw-copy">抽取并复制</button>
         </div>
       </div>
     `;
@@ -1617,32 +1705,26 @@ function renderRandomTools(){
       if (!ok) return;
       tools.splice(idx,1); saveTools(tools); renderRandomTools();
     });
-    card.querySelector('.btn-draw').addEventListener('click', ()=>{
+    const btnDrawCopy = card.querySelector('.btn-draw-copy');
+    btnDrawCopy.addEventListener('click', async ()=>{
       const res = drawTool(t);
       if (!res){ showAlert('请先在编辑中完善“内容”和“随机词条”'); return; }
       const resultEl = card.querySelector('.result');
       resultEl.textContent = res.text;
-      // 触发短暂动画
-      resultEl.classList.remove('flash');
-      // 强制重绘以重新触发动画
-      void resultEl.offsetWidth;
-      resultEl.classList.add('flash');
+      resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
       setTimeout(()=> resultEl.classList.remove('flash'), 700);
-    });
-    const copyBtn = card.querySelector('.btn-copy');
-    card.querySelector('.btn-copy').addEventListener('click', ()=>{
-      const resultEl = card.querySelector('.result');
       const txt = (resultEl?.textContent||'').trim();
       if (!txt || txt==='...'){ return; }
-      copyToClipboard(txt);
-      // 复制成功反馈：按钮变绿与勾号，过渡后恢复
-      const prevClass = copyBtn.className;
-      const prevHTML = copyBtn.innerHTML;
-      copyBtn.className = prevClass.replace('btn-glass-secondary','btn-glass-success');
-      copyBtn.innerHTML = (ICONS.check||'已复制');
+      await copyToClipboard(txt);
+      btnDrawCopy.disabled = true;
+      const prevClass = btnDrawCopy.className;
+      const prevHTML = btnDrawCopy.innerHTML;
+      btnDrawCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
+      btnDrawCopy.innerHTML = (ICONS.check||'已复制');
       setTimeout(()=>{
-        copyBtn.className = prevClass;
-        copyBtn.innerHTML = (ICONS.copy||'复制');
+        btnDrawCopy.className = prevClass;
+        btnDrawCopy.innerHTML = '抽取并复制';
+        btnDrawCopy.disabled = false;
       }, 1400);
     });
     frag.appendChild(card);
@@ -1994,10 +2076,10 @@ function refreshCurrentPanelFromLastRound(){
         if (bpMode==='personal'){
           reason = `P${p} 已使用过 ${nm}`;
         } else {
-          const info = getLastUsageInfo(nm, true);
+          const info = getLastUsageInfo(nm, false);
           if (info){
             const psTxt = info.ps.map(x=>`${x}P`).join(' / ');
-            reason = `${nm} 在第${info.round}轮已被 ${psTxt} 使用`;
+            reason = `${nm} 在第${info.round}轮 已被 ${psTxt} 使用`;
           } else {
             reason = `${nm} 已被使用（全局BP）`;
           }
@@ -2008,8 +2090,3 @@ function refreshCurrentPanelFromLastRound(){
   }
   renderRoundPanel(entries);
 }
-
-roleModal.querySelector('#removeRoleUsage').addEventListener('click', ()=>{
-  if (!roleModalCurrentName) return;
-  clearRoleBPUpToCurrent(roleModalCurrentName);
-});

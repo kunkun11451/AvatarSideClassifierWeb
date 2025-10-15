@@ -26,6 +26,9 @@ body{
 }
 .container{max-width:1200px;margin:0 auto;padding:20px}
 h1, h2, h3{display:block; width:100%; text-align:center}
+.onboarding-title{ color:#6db3ff; text-shadow: 0 1px 0 rgba(0,0,0,.35) }
+.section-title{ color:#6db3ff }
+.calib-title{ color:#6db3ff }
 
 .app-header{border-bottom:1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.2));}
 .app-header h1{margin:10px 0 4px; text-shadow: 2px 2px 4px var(--shadow)}
@@ -117,7 +120,7 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .crop-previews img{width:100px; height:100px; object-fit:cover; border:1px solid var(--border); border-radius: 10px}
 
 /* 结果与日志 */
-.slots{display:grid; grid-template-columns: repeat(2, 1fr); gap:12px}
+.slots{display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; border-bottom: 1px solid var(--border);padding-bottom: 12px;margin-bottom: 24px;}
 .slot{border:1px solid var(--border); border-radius:12px; padding:12px; background: rgba(0,0,0,0.25); min-height:110px; position:relative; overflow:hidden; transition: transform .2s ease, box-shadow .2s ease}
 .slot:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.25); }
 .slot h4{margin:0 0 6px; font-size:13px; color:#cfcfcf}
@@ -132,6 +135,9 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.55); z-index:1000; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity:0; transition: opacity .28s ease;}
 .modal.open{opacity:1}
 .modal .dialog{position:relative; width:min(1000px, 92vw); height:84vh; display:flex; flex-direction:column; overflow:hidden; background: rgba(255,255,255,0.10); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border:1px solid rgba(255,255,255,0.22); border-radius:20px; padding:28px 26px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.42), 0 0 0 1px rgba(255,255,255,0.08) inset; transform: scale(.90); transition: transform .32s cubic-bezier(.22,.75,.25,1), box-shadow .32s ease;}
+.modal .calib-video-dialog{ width:min(920px, 94vw); height:auto; max-height:88vh; }
+.modal .calib-video-dialog > div[style*="margin-top:10px"]{ flex:1 1 auto; display:flex; }
+#calibVideo{ width:100%; height:auto; max-height:70vh; object-fit:contain }
 .modal.open .dialog{transform: scale(1);}
 .modal .dialog:hover{box-shadow:0 10px 40px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,0.10) inset}
 .onboarding-dialog{height:auto !important; max-height:90vh; overflow:auto; padding-top:24px;}
@@ -183,14 +189,13 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 #calibModal .calib-paste-btn{min-width:140px}
 
 #onboardingModal #pButtons button,
-#onboardingModal #modeButtons button{position:relative; font-weight:500; transition: background .25s, box-shadow .25s, border-color .25s, color .25s}
+#onboardingModal #modeButtons button{position:relative; font-weight:600; transition: background .25s, box-shadow .25s, border-color .25s, color .25s; padding:12px 16px}
 #onboardingModal #pButtons button.primary,
 #onboardingModal #modeButtons button.primary{
-  background: linear-gradient(135deg, rgba(43,144,255,.55), rgba(43,144,255,.25));
-  border-color: rgba(43,144,255,.85);
+  background: linear-gradient(135deg, rgba(43,144,255,.65), rgba(43,144,255,.35));
+  border-color: rgba(43,144,255,.95);
   color:#fff;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset, 0 4px 14px rgba(43,144,255,.45), 0 0 8px rgba(43,144,255,.55);
-  font-weight:600;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.30) inset, 0 6px 16px rgba(43,144,255,.50), 0 0 10px rgba(43,144,255,.60);
 }
 #onboardingModal #pButtons button.primary::after,
 #onboardingModal #modeButtons button.primary::after{
@@ -200,8 +205,12 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 }
 @keyframes pulseSel { 0%,100%{opacity:.55; transform: scale(1);} 50%{opacity:.2; transform: scale(.97);} }
 
-#onboardingModal #pButtons button.ghost:not(.primary),
-#onboardingModal #modeButtons button.ghost:not(.primary){background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.25)); color:#d0d3d8;}
+#onboardingModal #pButtons .btn-glass.btn-glass-secondary:not(.primary),
+#onboardingModal #modeButtons .btn-glass.btn-glass-secondary:not(.primary){
+  background:rgba(255,255,255,0.10);
+  border-color:rgba(255,255,255,0.25);
+  color:#e5e7eb;
+}
 .modal .dialog .modal-x{position:absolute; right:10px; top:10px; border:none; background:transparent; color:#fff; font-size:20px; line-height:1; cursor:pointer; opacity:.9}
 .modal .dialog .modal-x:hover{opacity:1; transform: scale(1.05)}
 .picker-controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; margin-bottom:10px; flex:0 0 auto}
@@ -252,10 +261,23 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .tool-card .title input{flex:1 1 auto; font-size:16px}
 .tool-card .desc{color:var(--muted); padding-bottom:8px}
 .tool-card .desc.num-inline{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-.num-input{width:72px; text-align:center; padding:6px 8px; border-radius:8px; background: rgba(255,255,255,0.08); border:1px solid var(--border); color:var(--text)}
+.num-input{width:54px; text-align:center; padding:6px 8px; border-radius:8px; background: rgba(255,255,255,0.08); border:1px solid var(--border); color:var(--text)}
 .num-input::-webkit-outer-spin-button,
 .num-input::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0 }
 .num-input[type=number]{ -moz-appearance: textfield; appearance: textfield }
+
+.input-invalid{
+  animation: input-invalid-shake .3s ease-in-out;
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+@keyframes input-invalid-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+
 .tool-card .actions{display:flex; gap:8px; flex-wrap:wrap}
 .tool-card .actions-line{display:flex; align-items:center; gap:10px; justify-content:space-between; margin-top:auto; padding-top:8px; border-top:1px solid var(--border)}
 .tool-card .actions-line .result{flex:1 1 auto; min-height:20px; text-align:left}
@@ -413,14 +435,17 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .catalog .citem.used-personal-all img{ filter: grayscale(0.7) brightness(0.9) }
 .catalog .citem.used-personal-all .nm{ color:#bcbcbc }
 /* 个人 BP：边框高亮颜色规则（粗细不变）*/
-.catalog .citem.used-personal-some{ border-color: rgba(43,144,255,.85); box-shadow: 0 0 0 1px rgba(43,144,255,.30) inset, 0 0 12px rgba(43,144,255,.28); } /* 浅蓝 + 微光 */
+.catalog .citem.used-personal-some{ border-color: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) inset, 0 0 12px rgba(255, 255, 255, 0.28); } /* 浅蓝 + 微光 */
 .catalog .citem.used-personal-all{ border-color: rgba(255,83,83,.85) } /* 红色 */
 
 /* 历史弹窗 */
 .history-modal .dialog{width:min(1100px, 95vw)}
 .history-table{width:100%; border-collapse: collapse; border:1px solid var(--border); border-radius:10px; overflow:hidden}
-.history-table th,.history-table td{border-bottom:1px solid var(--border); padding:8px; font-size:13px; text-align:left}
+.history-table th,.history-table td{border-bottom:1px solid var(--border); padding:8px; font-size:13px; text-align:center; vertical-align: middle;}
 .history-table thead{background: rgba(255,255,255,0.06)}
+.history-cell-content{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-height: 64px;}
+.history-avatar{width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid var(--border);}
+.history-name{font-weight:500;}
 
 /* 结果区域标题与轮次样式 */
 .round-header{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; margin-top:14px}
@@ -504,6 +529,8 @@ body.modal-open{overflow:hidden}
   .role-dialog{width:92vw; max-height:88vh}
   .role-avatar{width:84px; height:84px}
   .role-title{font-size:18px}
+  .modal .calib-video-dialog{ width:94vw; height:auto; max-height:88vh }
+  #calibVideo{ max-height:60vh }
 }
 
 @media (min-width: 769px){

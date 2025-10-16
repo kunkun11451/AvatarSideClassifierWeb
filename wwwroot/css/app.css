@@ -121,9 +121,11 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 
 /* 结果与日志 */
 .slots{display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; border-bottom: 1px solid var(--border);padding-bottom: 12px;margin-bottom: 24px;}
-.slot{border:1px solid var(--border); border-radius:12px; padding:12px; background: rgba(0,0,0,0.25); min-height:110px; position:relative; overflow:hidden; transition: transform .2s ease, box-shadow .2s ease}
+.slot{border:1px solid var(--border); border-radius:12px; padding:12px; background: rgba(0,0,0,0.15); min-height:110px; position:relative; overflow:hidden; transition: transform .2s ease, box-shadow .2s ease}
 .slot:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.25); }
 .slot h4{margin:0 0 6px; font-size:13px; color:#cfcfcf}
+.theme-light .slot h4{ color:#1f2328 }
+.theme-light #confirmMsg{ color:#1f2328 !important }
 .slot .name{font-size:15px; font-weight:600}
 .slot .conflict{color:#ff8080; font-size:12px; margin-top:6px}
 .slot .actions{position:absolute; right:10px; bottom:10px; display:flex; gap:6px}
@@ -252,6 +254,7 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .tool-card{border:1px solid var(--border); border-radius:12px; padding:14px; background: rgba(255,255,255,0.06); display:flex; flex-direction:column; gap:10px; transition: transform .2s ease, box-shadow .2s ease; height:100%; min-height:140px}
 .tool-card .actions-line{margin-top:auto}
 .tool-card:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,.22); }
+.tool-card{ transition: transform .18s ease, box-shadow .18s ease }
 .tool-card .title{display:flex; justify-content:space-between; align-items:center; gap:8px}
 .tool-card .title strong{font-size:clamp(18px, 2.2vw, 22px); letter-spacing:.2px}
 .tool-card .title .ghost{height:32px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; border:1px solid transparent; color:#fff; transition: background .25s, border-color .25s, transform .2s}
@@ -296,7 +299,66 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .btn-glass-success:hover{background:linear-gradient(135deg, rgba(46,204,113,.65), rgba(46,204,113,.30)); box-shadow:0 6px 24px rgba(46,204,113,.45),0 0 0 1px rgba(255,255,255,.25) inset}
 .btn-glass-success:active{background:linear-gradient(135deg, rgba(46,204,113,.55), rgba(46,204,113,.25));}
 .tool-card.add-card{display:flex; flex-direction:column; align-items:center; justify-content:center; color:#cfd3da; background: rgba(255,255,255,0.04); border:1px dashed var(--border); cursor:pointer; height:100%; min-height:100%}
+.tool-card.edit-card{display:flex; flex-direction:column; align-items:center; justify-content:center; color:#cfd3da; background: rgba(255,255,255,0.06); border:1px dashed var(--border); cursor:pointer; height:100%; min-height:100%}
+.tool-card.edit-card:hover{ background: rgba(255,255,255,0.10) }
+.tools-grid.edit-mode .tool-card:not(.add-card):not(.edit-card){ cursor: grab }
+.tools-grid.edit-mode .tool-card.shake-1 { animation: shake-rotate-1 0.3s ease-in-out both infinite; }
+.tools-grid.edit-mode .tool-card.shake-2 { animation: shake-rotate-2 0.32s ease-in-out both infinite; }
+.tools-grid.edit-mode .tool-card.shake-3 { animation: shake-rotate-3 0.27s ease-in-out both infinite; }
+.tools-grid.edit-mode .tool-card.shake-4 { animation: shake-rotate-4 0.35s ease-in-out both infinite; }
+.tools-grid.edit-mode .tool-card{ touch-action: none }
+@keyframes shake-rotate-1 { 
+  0%, 100% { transform: rotate(-0.8deg) } 
+  50% { transform: rotate(0.8deg) } 
+}
+@keyframes shake-rotate-2 { 
+  0%, 100% { transform: rotate(0.8deg) } 
+  50% { transform: rotate(-0.8deg) } 
+}
+@keyframes shake-rotate-3 { 
+  0% { transform: rotate(-0.8deg) } 
+  25% { transform: rotate(0.8deg) }
+  75% { transform: rotate(-0.8deg) }
+  100% { transform: rotate(-0.8deg) }
+}
+@keyframes shake-rotate-4 { 
+  0% { transform: rotate(0.8deg) } 
+  30% { transform: rotate(-0.8deg) }
+  80% { transform: rotate(0.8deg) }
+  100% { transform: rotate(0.8deg) }
+}
+.tool-card.dragging{ opacity:.85; cursor: grabbing; box-shadow: 0 12px 28px rgba(0,0,0,.35) }
+.tool-card.placeholder{ opacity:.6; background: rgba(255,255,255,0.03); border:1px dashed var(--border); box-shadow:none }
+.tool-card.drag-floating{ position:fixed; pointer-events:none; z-index:9999; transform:none !important }
+/* 拖拽浮动时由 JS 设定固定宽高，防止高度异常变化 */
+.tool-card.drag-floating{ box-shadow: 0 12px 28px rgba(0,0,0,.35) }
 .tool-card.add-card .plus{width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); font-size:24px;}
+.tool-card.edit-card .plus{width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); font-size:22px;}
+
+/* 默认隐藏编辑/删除/复制按钮，仅在编辑模式显示 */
+.tool-card .title .btn-edit,
+.tool-card .title .btn-del,
+.tool-card .title .btn-dup,
+.tool-card .title .btn-dup-template{ display:none }
+.tools-grid.edit-mode .tool-card .title .btn-edit,
+.tools-grid.edit-mode .tool-card .title .btn-del,
+.tools-grid.edit-mode .tool-card .title .btn-dup,
+.tools-grid.edit-mode .tool-card .title .btn-dup-template{ display:inline-flex }
+
+/* 出入场动效（从中心放大/缩小） */
+@keyframes pop-in { from { transform: scale(.6); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+@keyframes pop-out { from { transform: scale(1); opacity: 1 } to { transform: scale(.6); opacity: 0 } }
+.tools-grid.edit-mode .tool-card .title .ghost.pop-in{ animation: pop-in .18s ease-out }
+.tools-grid.edit-mode .tool-card .title .ghost.pop-out{ animation: pop-out .16s ease-in forwards }
+/* 当退出编辑模式前播放隐藏动效时，仍需应用动画（即使随后移除 edit-mode） */
+.tool-card .title .ghost.pop-out{ animation: pop-out .16s ease-in forwards }
+
+/* 占位卡片：用于保持编辑/添加在同一行 */
+.tool-card.spacer-card{ visibility:hidden; pointer-events:none }
+@media (max-width: 768px){ .tool-card.spacer-card{ display:none } }
+
+/* 浮动中的卡片保持原有大小与样式，不受 hover transform 影响 */
+.tool-card.drag-floating{ transform:none !important; box-shadow: 0 12px 28px rgba(0,0,0,.35) }
 
 /* 随机工具编辑器 */
 .tool-editor label{display:block; font-weight:600; margin-top:6px; color:#6db3ff}
@@ -341,6 +403,30 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .value-row{display:flex; gap:6px; align-items:center}
 .value-row .value-input{flex:1 1 auto; border:1px solid var(--border); background: rgba(255,255,255,0.06); color:var(--text); border-radius:8px; padding:8px 10px}
 .value-row .value-del{border:1px solid var(--border); background:rgba(255,255,255,0.06);border-radius:8px; cursor:pointer}
+/* 预设列表：内容超出时滚动且隐藏滚动条 */
+.num-preset-list{max-height:60vh; overflow:auto; padding-right:4px; -ms-overflow-style: none; scrollbar-width: none}
+.num-preset-list::-webkit-scrollbar{display:none}
+
+/* 随机数预设管理弹窗 - 行与输入统一样式 */
+.num-preset-row{border:1px solid var(--border); border-radius:10px; padding:10px; background: rgba(255,255,255,0.04); display:grid; grid-template-columns: 1fr 80px 80px 80px auto; align-items:center; gap:8px}
+.num-preset-row input{border:1px solid var(--border); background: rgba(255,255,255,0.06); color:var(--text); border-radius:8px; padding:8px 10px; width:100%}
+.num-preset-row .np-field{display:flex; flex-direction:column; gap:4px}
+.num-preset-row .np-lab{font-size:12px; color:#9aa3af}
+.num-preset-row .mini{border-radius:8px; border:1px solid transparent; display:inline-flex; align-items:center; justify-content:center; color:#fff; transition: background .25s, border-color .25s, transform .2s}
+.num-preset-row .mini:hover{transform:translateY(-1px)}
+.num-preset-row .np-del{background:linear-gradient(180deg, rgba(255,83,83,.22), rgba(255,83,83,.10)); border-color:rgba(255,83,83,.55)}
+
+/* 随机数模板输入框统一样式 */
+.tool-card .num-inline .num-input{border:1px solid var(--border); background: rgba(255,255,255,0.06); color:var(--text); border-radius:8px; padding:6px 8px}
+.tool-card .num-inline select.num-preset-select{border:1px solid var(--border); background: rgba(255,255,255,0.06); color:var(--text); border-radius:8px; padding:6px 8px}
+.tool-card .num-inline .num-input.input-invalid{border-color: rgba(255,83,83,.75); box-shadow: 0 0 0 2px rgba(255,83,83,.18)}
+
+@media (max-width: 520px){
+  .num-preset-row{grid-template-columns: repeat(3, 1fr); gap:6px}
+  .num-preset-row .np-name-wrap{grid-column: 1 / -1}
+  .num-preset-row input{padding:6px 8px}
+  .num-preset-row .np-ops{ grid-column: 1 / -1; display:flex; justify-content:flex-end }
+}
 
 /* === 角色图鉴：BP 使用状态可视化 === */
 /* 让 citem 能放置角标与徽章 */
@@ -479,6 +565,7 @@ body.modal-open{overflow:hidden}
 .radio-inputs .radio{flex:1 1 0;text-align:center;display:flex}
 .radio-inputs .radio input{display:none}
 .radio-inputs .radio .radio-item{flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:#d2d5db;font-weight:500;font-size:14px;transition:background .35s ease,color .35s ease, font-weight .35s ease;}
+.theme-light .radio-inputs .radio .radio-item{ color:#1f2328 }
 .radio-inputs .radio .radio-item:hover{background:rgba(255,255,255,.08);}
 .radio-inputs input:checked ~ .radio-item{background:linear-gradient(145deg,rgba(255,255,255,.28),rgba(255,255,255,.10));color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.25) inset,0 0 0 1px rgba(255,255,255,.25);}
 @media (max-width:560px){ .radio-inputs{height:auto;padding:4px 4px;flex-wrap:wrap} }

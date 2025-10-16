@@ -55,3 +55,9 @@ staticwebassets.*.json
 Thumbs.db
 
 wwwroot/robots.txt
+
+# Batch script
+manage.bat
+
+# Logs
+logs/

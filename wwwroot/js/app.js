@@ -88,7 +88,32 @@ const EMPTY_STATE_IMAGES = [
   'https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/ac8cc89729e6bbf48f68e52f6c0d4020_8006937065318554054.png',
   'https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/ceb4acae51995eb8189fabeff82cca55_1025240340820937590.png',
   'https://upload-bbs.miyoushe.com/upload/2024/11/08/273489775/4426228777a7e2ebd0048727370a376a_7951741384908377540.png',
-  'https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/dfe68fe72b88b6c039cc31bc7b7f7806_818843631555829688.png'
+  'https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/dfe68fe72b88b6c039cc31bc7b7f7806_818843631555829688.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/ce571d3dd850a126513a81fcc992a23c_4468423263221193479.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/03/273489775/0adbfc4850e2e783789d198ebea9c142_3654013575541702378.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/05/273489775/cc9d7db6e4081d4c6e3a3bcac567cb0c_6023314499811805923.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/04/273489775/3ee79ac33eaad22d3609e7ffaf7dc22b_6817230100985611292.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/05/273489775/5e3e2f7a6bb76416392199dae4c831c6_7526667435328324962.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/05/273489775/aed2eb69bf3b6c2abb84184a1b4bd0db_8744334817291281646.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/06/273489775/e162d189bc9ae798a5cc30fe1baec56c_4747108931468163361.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/06/273489775/55d99ee05902eed1e911621737ac089f_4566126243891857628.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/06/273489775/55eff3bfd54b990a87d6afacbb49e8e6_5609001809701785952.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/02/09/273489775/74d48428b7b2c5a45058d2fb3ed9f2a7_5630328886121320848.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/0f147dcbf17b5fcebec99f9412b2e859_3767626698872818046.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/8d80e61f5e5685dfc8d3e7f09ccea7e6_2132277407840622075.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/82b51ccf624d8342d4083202e5f07081_6663804071818218694.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/e5b0a2a36789a0825a4fdefd11f191db_4926010984222315095.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/303005f064bc178646aa7e7148af2404_4184162256646106716.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/08/273489775/26911fa3b407d7a1bdb93180fb5bdc73_3503897204375100504.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/d03a1367e14b95627eb000f781f453fd_3537095380218873516.png',
+  'https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/b8568ed4578c262b1e82de830f88a444_4282867627351916631.png',
+  'https://upload-bbs.miyoushe.com/upload/2025/02/03/273489775/e980d50b33ce8db748b3037f7395ba68_434322672713591018.png',
+  'https://upload-bbs.miyoushe.com/upload/2025/02/03/273489775/b53bf14e4c1cecd0aadfb69b5cc2a3bc_7304141382454640965.png',
+  'https://upload-bbs.miyoushe.com/upload/2025/03/30/273489775/be7ab7ce29745b6af45da17674838f67_193445820641258103.png',
+  'https://upload-bbs.miyoushe.com/upload/2025/04/06/273489775/2d1489325107513c2f0167677868010c_3790296858220722202.png',
+  'https://upload-bbs.miyoushe.com/upload/2025/07/06/273489775/fabe83bbca193bedc9b542003d215944_6069987243218748025.png',
+  'https://upload-bbs.miyoushe.com/upload/2025/02/03/273489775/30b724be759925574257a4a4a2ca0276_6568315822541313331.png'
 ];
 function pickEmptyImage(){
   if (!EMPTY_STATE_IMAGES.length) return '';
@@ -1286,9 +1311,11 @@ document.getElementById('viewSwitcher')?.addEventListener('change', (e)=>{
 // ===== 随机工具 =====
 const LS_TOOLS_KEY = 'randomTools_v1';
 const LS_TOOLS_BUILTINS_KEY = 'randomTools_builtins_v1';
-// 特殊：随机数卡片的独立存储
-const LS_NUM_TOOLS_KEY = 'randomNumTools_v1';
+// 随机数模板与预设 + 工具顺序
 const LS_NUM_TEMPLATE_KEY = 'randomNumTemplate_v1';
+const LS_NUM_PRESETS_KEY = 'randomNumPresets_v1';
+const LS_NUM_SELECTED_PRESET_KEY = 'randomNumSelectedPreset_v1';
+const LS_TOOLS_ORDER_KEY = 'randomToolsOrder_v2';
 const ICONS = {
   del: '<svg class="icon" style="width:1em;height:1em;vertical-align:middle;fill:currentColor;overflow:hidden;" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M799.2 874.4c0 34.4-28.001 62.4-62.4 62.4H287.2c-34.4 0-62.4-28-62.4-62.4V212h574.4v662.4zM349.6 100c0-7.2 5.6-12.8 12.8-12.8h300c7.2 0 12.8 5.6 12.8 12.8v37.6H349.6V100z m636.8 37.6H749.6V100c0-48.001-39.2-87.2-87.2-87.2h-300c-48 0-87.2 39.199-87.2 87.2v37.6H37.6C16.8 137.6 0 154.4 0 175.2s16.8 37.6 37.6 37.6h112v661.6c0 76 61.6 137.6 137.6 137.6h449.6c76 0 137.6-61.6 137.6-137.6V212h112c20.8 0 37.6-16.8 37.6-37.6s-16.8-36.8-37.6-36.8zM512 824c20.8 0 37.6-16.8 37.6-37.6v-400c0-20.8-16.8-37.6-37.6-37.6s-37.6 16.8-37.6 37.6v400c0 20.8 16.8 37.6 37.6 37.6m-175.2 0c20.8 0 37.6-16.8 37.6-37.6v-400c0-20.8-16.8-37.6-37.6-37.6s-37.6 16.8-37.6 37.6v400c0.8 20.8 17.6 37.6 37.6 37.6m350.4 0c20.8 0 37.6-16.8 37.6-37.6v-400c0-20.8-16.8-37.6-37.6-37.6s-37.6 16.8-37.6 37.6" fill="#FFFFFF"></path></svg>',
   edit: '<svg class="icon" style="width:1em;height:1em;vertical-align:middle;fill:currentColor;overflow:hidden;" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M832.161 351.79c-17.673 0-32 14.327-32 32v479.85H224.037V223.784h414.605c17.673 0 32-14.327 32-32 0-17.673-14.327-32-32-32H192.037c-17.673 0-32 14.327-32 32V895.64c0 17.673 14.327 32 32 32h640.124c17.673 0 32-14.327 32-32V383.79c0-17.673-14.327-32-32-32z" fill="#FFFFFF"></path><path d="M485.612 534.222c6.249 6.248 14.438 9.372 22.627 9.372s16.379-3.124 22.627-9.372l321.407-321.406c12.496-12.497 12.496-32.758 0-45.255-12.498-12.497-32.759-12.497-45.255 0L485.612 488.967c-12.497 12.496-12.497 32.758 0 45.255zM736 627c0-17.673-14.327-32-32-32H322c-17.673 0-32 14.327-32 32s14.327 32 32 32h382c17.673 0 32-14.327 32-32zM322 725c-17.673 0-32 14.327-32 32s14.327 32 32 32h251c17.673 0 32-14.327 32-32s-14.327-32-32-32H322z" fill="#FFFFFF"></path></svg>'
@@ -1298,20 +1325,21 @@ const ICONS = {
   ,plus: '<svg class="icon" style="width:1em;height:1em;vertical-align:middle;fill:currentColor;overflow:hidden;" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M480 160h64v704h-64z" fill="#FFFFFF"></path><path d="M160 480h704v64H160z" fill="#FFFFFF"></path></svg>'
 };
 
-// 随机数卡片：存储与工具函数
-function loadNumCards(){
-  try{
-    const s = localStorage.getItem(LS_NUM_TOOLS_KEY);
-    const arr = s ? JSON.parse(s) : [];
-    return Array.isArray(arr) ? arr : [];
-  }catch{ return []; }
+// 随机数预设
+function loadNumPresets(){
+  try{ const s = localStorage.getItem(LS_NUM_PRESETS_KEY); const arr = s? JSON.parse(s):[]; return Array.isArray(arr)? arr:[]; }catch{ return []; }
 }
-function saveNumCards(list){
-  try{ localStorage.setItem(LS_NUM_TOOLS_KEY, JSON.stringify(list||[])); }catch{}
+function saveNumPresets(list){ try{ localStorage.setItem(LS_NUM_PRESETS_KEY, JSON.stringify(list||[])); }catch{} }
+function ensureDefaultNumPreset(){
+  const arr = loadNumPresets();
+  if (!arr.length){
+    const def = { id: crypto.randomUUID?.()||String(Date.now()+Math.random()), name:'常用(4个1-6)', count:4, min:1, max:6 };
+    saveNumPresets([def]);
+  }
 }
-function newNumCard(count=1, min=1, max=100){
-  return { id: crypto.randomUUID?.() || String(Date.now()+Math.random()), count, min, max };
-}
+// 已选择预设的持久化（仅保存预设 id）
+function loadSelectedNumPresetId(){ try{ return localStorage.getItem(LS_NUM_SELECTED_PRESET_KEY) || ''; }catch{ return ''; } }
+function saveSelectedNumPresetId(id){ try{ if (id) localStorage.setItem(LS_NUM_SELECTED_PRESET_KEY, id); else localStorage.removeItem(LS_NUM_SELECTED_PRESET_KEY); }catch{} }
 // 模板设置持久化：数量/最小值/最大值
 function loadNumTemplate(){
   try{
@@ -1354,7 +1382,7 @@ function ensureConfirmModal(){
     <div class="dialog onboarding-dialog" style="max-width:440px">
       <button class="modal-x" id="closeConfirmX" aria-label="关闭" title="关闭">×</button>
       <h3 style="margin:0 0 8px; text-align:center; color:#2B90FF">提示</h3>
-      <div id="confirmMsg" style="margin:8px 0 14px; color:#d0d3d8; text-align:center"></div>
+  <div id="confirmMsg" style="margin:8px 0 14px; color: var(--text, #e5e7eb); text-align:center"></div>
       <div style="display:flex; gap:10px; justify-content:center">
         <button class="btn-glass btn-glass-secondary" id="confirmCancel">取消</button>
         <button class="btn-glass btn-glass-danger" id="confirmOk">确定</button>
@@ -1485,251 +1513,252 @@ function renderRandomTools(){
   if (!grid) return;
   // 确保内置工具已注入
   ensureBuiltInTools();
-  const numCards = loadNumCards();
+  ensureDefaultNumPreset();
   const tools = loadTools();
+  let order = [];
+  try{
+    const s = localStorage.getItem(LS_TOOLS_ORDER_KEY);
+    const saved = s? JSON.parse(s):null;
+    if (Array.isArray(saved)) order = saved;
+  }catch{}
+  const toolKeys = tools.map(t=> `tool:${t.id||''}`);
+  if (!order || !order.length){
+    order = ['num', ...toolKeys];
+  } else {
+    // 过滤无效项，并补全新增工具
+    order = order.filter(k=> k==='num' || toolKeys.includes(k));
+    toolKeys.forEach(k=>{ if (!order.includes(k)) order.push(k); });
+    if (!order.includes('num')) order.unshift('num');
+  }
   const frag = document.createDocumentFragment();
-
-  // 先渲染“随机数”模板卡片
-  (function renderRandomNumberTemplate(){
-    const card = document.createElement('div');
-    card.className = 'tool-card';
-    card.innerHTML = `
-      <div class="title">
-        <div style="display:flex;align-items:center;gap:8px;flex:1 1 auto">
-          <strong>随机数</strong>
+  // 按顺序渲染
+  order.forEach(key=>{
+    if (key==='num'){
+      // 随机数模板卡片（带预设下拉与管理）
+      const card = document.createElement('div');
+      card.className = 'tool-card num-template';
+      card.innerHTML = `
+        <div class="title">
+          <div style="display:flex;align-items:center;gap:8px;flex:1 1 auto;margin-bottom: 8px;">
+            <strong>随机数</strong>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="ghost btn-edit" title="管理预设">${ICONS.edit}</button>
+          </div>
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="ghost btn-dup-template" title="复制卡片">${ICONS.copy}</button>
+        <div class="desc num-inline">
+          生成 <input class="num-input num-count" type="number" min="1" max="10" value="1"> 个 <input class="num-input num-min" type="number" value="1"> - <input class="num-input num-max" type="number" value="6"> 随机数
+          <select class="num-preset-select" style="margin-left:8px; max-width: 50%"><option value="">选择预设</option></select>
         </div>
-      </div>
-  <div class="desc num-inline">生成 <input class="num-input num-count" type="number" min="1" max="10" value="1"> 个 <input class="num-input num-min" type="number" value="1"> - <input class="num-input num-max" type="number" value="6"> 随机数</div>
-      <div class="actions-line">
-        <div class="result" aria-live="polite">...</div>
-        <div class="actions">
-          <button class="btn-glass btn-glass-primary btn-gen-copy">抽取并复制</button>
+        <div class="actions-line">
+          <div class="result" aria-live="polite">...</div>
+          <div class="actions">
+            <button class="btn-glass btn-glass-primary btn-gen-copy">抽取并复制</button>
+          </div>
         </div>
-      </div>
-    `;
-    const elCount = card.querySelector('.num-count');
-    const elMin = card.querySelector('.num-min');
-    const elMax = card.querySelector('.num-max');
-  const btnGenCopy = card.querySelector('.btn-gen-copy');
-    const btnDup = card.querySelector('.btn-dup-template');
-    const resultEl = card.querySelector('.result');
-
-    // 从本地缓存载入模板设置
-    const tpl = loadNumTemplate();
-    elCount.value = String(tpl.count);
-    elMin.value = String(tpl.min);
-    elMax.value = String(tpl.max);
-
-    function readVals(){
-      const c = Math.max(1, Math.min(10, parseInt(elCount.value||'1',10)));
-      const mi = parseInt(elMin.value||'1',10);
-      const ma = parseInt(elMax.value||'6',10);
-      return { c, mi, ma };
-    }
-    function persistTpl(){
-      const c = parseInt(elCount.value||'1',10);
-      const mi = parseInt(elMin.value||'1',10);
-      const ma = parseInt(elMax.value||'6',10);
-      saveNumTemplate({ count: Number.isFinite(c)? c : tpl.count, min: Number.isFinite(mi)? mi : tpl.min, max: Number.isFinite(ma)? ma : tpl.max });
-    }
-    elCount.addEventListener('input', ()=>{
-      const val = parseInt(elCount.value, 10);
-      if (val > 10) {
-        elCount.value = '10';
-        elCount.classList.add('input-invalid');
-        setTimeout(()=> elCount.classList.remove('input-invalid'), 600);
-      }
-      persistTpl();
-    });
-    elMin.addEventListener('input', persistTpl);
-    elMax.addEventListener('input', persistTpl);
-    function doGenerate(){
-      const {c, mi, ma} = readVals();
-      if (!Number.isFinite(mi) || !Number.isFinite(ma)) { showAlert('请输入有效的整数区间'); return; }
-      if (mi > ma){ showAlert('最小值不能大于最大值'); return; }
-      const arr = generateNumbers(c, mi, ma);
-      resultEl.textContent = arr.join(' ');
-      resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
-      setTimeout(()=> resultEl.classList.remove('flash'), 700);
-      return resultEl.textContent.trim();
-    }
-    btnGenCopy.addEventListener('click', async ()=>{
-      const txt = doGenerate();
-      if (!txt || txt==='...') return;
-      await copyToClipboard(txt);
-      btnGenCopy.disabled = true;
-      const prev = btnGenCopy.innerHTML; const prevClass = btnGenCopy.className;
-      btnGenCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
-      btnGenCopy.innerHTML = ICONS.check || '已复制';
-      setTimeout(()=>{
-        btnGenCopy.className = prevClass;
-        btnGenCopy.innerHTML = '抽取并复制';
-        btnGenCopy.disabled = false;
-      }, 1400);
-    });
-    btnDup.addEventListener('click', ()=>{
-      const {c, mi, ma} = readVals();
-      const list = loadNumCards();
-      list.push(newNumCard(c, mi, ma));
-      saveNumCards(list);
-      renderRandomTools();
-    });
-    frag.appendChild(card);
-  })();
-
-  // 渲染“随机数”的实例卡片
-  numCards.forEach((nc, i)=>{
-    const card = document.createElement('div');
-    card.className = 'tool-card';
-    card.innerHTML = `
-      <div class="title">
-        <div style="display:flex;align-items:center;gap:8px;flex:1 1 auto">
-          <strong>随机数</strong>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="ghost btn-dup" title="复制卡片">${ICONS.copy}</button>
-          <button class="ghost btn-del" title="删除">${ICONS.del}</button>
-        </div>
-      </div>
-      <div class="desc num-inline">生成 <input class="num-input num-count" type="number" min="1" max="10" value="${escapeHtml(String(nc.count??1))}"> 个 <input class="num-input num-min" type="number" value="${escapeHtml(String(nc.min??1))}"> - <input class="num-input num-max" type="number" value="${escapeHtml(String(nc.max??100))}"> 随机数</div>
-      <div class="actions-line">
-        <div class="result" aria-live="polite">...</div>
-        <div class="actions">
-          <button class="btn-glass btn-glass-primary btn-gen-copy" title="抽取并复制">抽取并复制</button>
-        </div>
-      </div>
-    `;
-    const elCount = card.querySelector('.num-count');
-    const elMin = card.querySelector('.num-min');
-    const elMax = card.querySelector('.num-max');
-  const btnGenCopy = card.querySelector('.btn-gen-copy');
-    const btnDup = card.querySelector('.btn-dup');
-    const btnDel = card.querySelector('.btn-del');
-    const resultEl = card.querySelector('.result');
-
-    function persist(){
-      const list = loadNumCards();
-      const it = list[i];
-      if (!it) return;
-      const c = Math.max(1, Math.min(10, parseInt(elCount.value||'1',10)));
-      const mi = parseInt(elMin.value||'1',10);
-      const ma = parseInt(elMax.value||'100',10);
-      it.count = Number.isFinite(c)? c : 1;
-      it.min = Number.isFinite(mi)? mi : 1;
-      it.max = Number.isFinite(ma)? ma : 100;
-      saveNumCards(list);
-    }
-    elCount.addEventListener('input', ()=>{
-      const val = parseInt(elCount.value, 10);
-      if (val > 10) {
-        elCount.value = '10';
-        elCount.classList.add('input-invalid');
-        setTimeout(()=> elCount.classList.remove('input-invalid'), 600);
-      }
-      persist();
-    });
-    elMin.addEventListener('input', persist);
-    elMax.addEventListener('input', persist);
-
-    btnGenCopy.addEventListener('click', async ()=>{
-      const c = Math.max(1, Math.min(10, parseInt(elCount.value||'1',10)));
-      const mi = parseInt(elMin.value||'1',10);
-      const ma = parseInt(elMax.value||'100',10);
-      if (!Number.isFinite(mi) || !Number.isFinite(ma)) { showAlert('请输入有效的整数区间'); return; }
-      if (mi > ma){ showAlert('最小值不能大于最大值'); return; }
-      const arr = generateNumbers(c, mi, ma);
-      resultEl.textContent = arr.join(' ');
-      resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
-      setTimeout(()=> resultEl.classList.remove('flash'), 700);
-      const txt = (resultEl.textContent||'').trim();
-      if (!txt || txt==='...') return;
-      await copyToClipboard(txt);
-      btnGenCopy.disabled = true;
-      const prev = btnGenCopy.innerHTML; const prevClass = btnGenCopy.className;
-      btnGenCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
-      btnGenCopy.innerHTML = ICONS.check || '已复制';
-      setTimeout(()=>{
-        btnGenCopy.className = prevClass;
-        btnGenCopy.innerHTML = '抽取并复制';
-        btnGenCopy.disabled = false;
-      }, 1400);
-    });
-    btnDup.addEventListener('click', ()=>{
-      const list = loadNumCards();
-      const it = list[i]; if (!it) return;
-      list.push(newNumCard(it.count, it.min, it.max));
-      saveNumCards(list);
-      renderRandomTools();
-    });
-    btnDel.addEventListener('click', async ()=>{
-      const ok = await showConfirm('删除该随机数卡片？');
-      if (!ok) return;
-      const list = loadNumCards();
-      list.splice(i,1);
-      saveNumCards(list);
-      renderRandomTools();
-    });
-
-    frag.appendChild(card);
-  });
-  // 再渲染用户自定义的随机工具
-  tools.forEach((t, idx)=>{
-    const card = document.createElement('div');
-    card.className = 'tool-card';
-  // 不再显示标签预览
-    card.innerHTML = `
-      <div class="title">
-        <div style="display:flex;align-items:center;gap:8px;flex:1 1 auto">
-          <strong>${escapeHtml(t.title||'未命名')}</strong>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="ghost btn-edit" title="编辑">${ICONS.edit}</button>
-          <button class="ghost btn-del" title="删除">${ICONS.del}</button>
-        </div>
-      </div>
-      <div class="desc" style="white-space:pre-wrap">${escapeHtml((t.content||'').slice(0,160))}${(t.content||'').length>160? '…':''}</div>
-      <div class="actions-line">
-        <div class="result" aria-live="polite">...</div>
-        <div class="actions">
-          <button class="btn-glass btn-glass-primary btn-draw-copy">抽取并复制</button>
-        </div>
-      </div>
-    `;
-    // 事件
-    card.querySelector('.btn-edit').addEventListener('click', ()=> openToolEditor(idx));
-    card.querySelector('.btn-del').addEventListener('click', async ()=>{
-      const ok = await showConfirm('删除该随机工具？');
-      if (!ok) return;
-      tools.splice(idx,1); saveTools(tools); renderRandomTools();
-    });
-    const btnDrawCopy = card.querySelector('.btn-draw-copy');
-    btnDrawCopy.addEventListener('click', async ()=>{
-      const res = drawTool(t);
-      if (!res){ showAlert('请先在编辑中完善“内容”和“随机词条”'); return; }
+      `;
+      const elCount = card.querySelector('.num-count');
+      const elMin = card.querySelector('.num-min');
+      const elMax = card.querySelector('.num-max');
+      const btnGenCopy = card.querySelector('.btn-gen-copy');
       const resultEl = card.querySelector('.result');
-      resultEl.textContent = res.text;
-      resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
-      setTimeout(()=> resultEl.classList.remove('flash'), 700);
-      const txt = (resultEl?.textContent||'').trim();
-      if (!txt || txt==='...'){ return; }
-      await copyToClipboard(txt);
-      btnDrawCopy.disabled = true;
-      const prevClass = btnDrawCopy.className;
-      const prevHTML = btnDrawCopy.innerHTML;
-      btnDrawCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
-      btnDrawCopy.innerHTML = (ICONS.check||'已复制');
-      setTimeout(()=>{
-        btnDrawCopy.className = prevClass;
-        btnDrawCopy.innerHTML = '抽取并复制';
-        btnDrawCopy.disabled = false;
-      }, 1400);
-    });
-    frag.appendChild(card);
+      const btnEdit = card.querySelector('.btn-edit');
+      const sel = card.querySelector('.num-preset-select');
+
+      // 模板设置
+      const tpl = loadNumTemplate();
+      elCount.value = String(tpl.count);
+      elMin.value = String(tpl.min);
+      elMax.value = String(tpl.max);
+
+      function persistTpl(){
+        const c = parseInt(elCount.value||'1',10);
+        const mi = parseInt(elMin.value||'1',10);
+        const ma = parseInt(elMax.value||'6',10);
+        saveNumTemplate({ count: Number.isFinite(c)? c : tpl.count, min: Number.isFinite(mi)? mi : tpl.min, max: Number.isFinite(ma)? ma : tpl.max });
+      }
+      function refreshPresetOptions(){
+        const list = loadNumPresets();
+        sel.innerHTML = '<option value="">选择预设</option>' + list.map(p=> `<option value="${p.id}">${escapeHtml(p.name||'未命名')}</option>`).join('');
+        // 恢复已选择的预设（若仍存在）
+        const savedId = loadSelectedNumPresetId();
+        if (savedId && list.some(p=> p.id===savedId)){
+          sel.value = savedId;
+        } else {
+          sel.value = '';
+          saveSelectedNumPresetId('');
+        }
+      }
+      refreshPresetOptions();
+      sel.addEventListener('change', ()=>{
+        const id = sel.value; if (!id){ saveSelectedNumPresetId(''); return; }
+        const p = loadNumPresets().find(x=> x.id===id);
+        if (!p) return;
+        elCount.value = String(Math.max(1, Math.min(10, parseInt(p.count||1,10))));
+        elMin.value = String(parseInt(p.min||1,10));
+        elMax.value = String(parseInt(p.max||6,10));
+        persistTpl();
+        saveSelectedNumPresetId(id);
+      });
+      elCount.addEventListener('input', ()=>{
+        const val = parseInt(elCount.value, 10);
+        if (val > 10) {
+          elCount.value = '10';
+          elCount.classList.add('input-invalid');
+          setTimeout(()=> elCount.classList.remove('input-invalid'), 600);
+        }
+        persistTpl();
+        // 手动修改时清除预设选择
+        sel.value = '';
+        saveSelectedNumPresetId('');
+      });
+      elMin.addEventListener('input', ()=>{ persistTpl(); sel.value=''; saveSelectedNumPresetId(''); });
+      elMax.addEventListener('input', ()=>{ persistTpl(); sel.value=''; saveSelectedNumPresetId(''); });
+      function doGenerate(){
+        const c = Math.max(1, Math.min(10, parseInt(elCount.value||'1',10)));
+        const mi = parseInt(elMin.value||'1',10);
+        const ma = parseInt(elMax.value||'6',10);
+        if (!Number.isFinite(mi) || !Number.isFinite(ma)) { showAlert('请输入有效的整数区间'); return; }
+        if (mi > ma){ showAlert('最小值不能大于最大值'); return; }
+        const arr = generateNumbers(c, mi, ma);
+        resultEl.textContent = arr.join(' ');
+        resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
+        setTimeout(()=> resultEl.classList.remove('flash'), 700);
+        return resultEl.textContent.trim();
+      }
+      btnGenCopy.addEventListener('click', async ()=>{
+        const txt = doGenerate();
+        if (!txt || txt==='...') return;
+        await copyToClipboard(txt);
+        btnGenCopy.disabled = true;
+        const prev = btnGenCopy.innerHTML; const prevClass = btnGenCopy.className;
+        btnGenCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
+        btnGenCopy.innerHTML = ICONS.check || '已复制';
+        setTimeout(()=>{
+          btnGenCopy.className = prevClass;
+          btnGenCopy.innerHTML = '抽取并复制';
+          btnGenCopy.disabled = false;
+        }, 1400);
+      });
+      btnEdit.addEventListener('click', ()=> openNumPresetEditor(refreshPresetOptions));
+      frag.appendChild(card);
+    } else if (key.startsWith('tool:')){
+      const id = key.slice(5);
+      const t = tools.find(x=> (x.id||'')===id);
+      if (!t) return;
+      // 工具卡
+      const card = document.createElement('div');
+      card.className = 'tool-card';
+      card.dataset.toolId = id;
+      card.innerHTML = `
+        <div class="title">
+          <div style="display:flex;align-items:center;gap:8px;flex:1 1 auto;margin-bottom: 8px;">
+            <strong>${escapeHtml(t.title||'未命名')}</strong>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="ghost btn-edit" title="编辑">${ICONS.edit}</button>
+            <button class="ghost btn-del" title="删除">${ICONS.del}</button>
+          </div>
+        </div>
+        <div class="desc" style="white-space:pre-wrap">${escapeHtml((t.content||'').slice(0,160))}${(t.content||'').length>160? '…':''}</div>
+        <div class="actions-line">
+          <div class="result" aria-live="polite">...</div>
+          <div class="actions">
+            <button class="btn-glass btn-glass-primary btn-draw-copy">抽取并复制</button>
+          </div>
+        </div>
+      `;
+      card.querySelector('.btn-edit').addEventListener('click', ()=>{
+        if (id) openToolEditorById(id); else openToolEditorByTitle(t.title||'');
+      });
+      card.querySelector('.btn-del').addEventListener('click', async ()=>{
+        const ok = await showConfirm('删除该随机工具？');
+        if (!ok) return;
+        const cur = loadTools();
+        let di = cur.findIndex(x=> (x.id||'')===id);
+        if (di<0) di = cur.findIndex(x=> (x.title||'')===(t.title||''));
+        if (di>=0){ cur.splice(di,1); saveTools(cur); renderRandomTools(); }
+      });
+      const btnDrawCopy = card.querySelector('.btn-draw-copy');
+      btnDrawCopy.addEventListener('click', async ()=>{
+        const res = drawTool(t);
+        if (!res){ showAlert('请先在编辑中完善“内容”和“随机词条”'); return; }
+        const resultEl = card.querySelector('.result');
+        resultEl.textContent = res.text;
+        resultEl.classList.remove('flash'); void resultEl.offsetWidth; resultEl.classList.add('flash');
+        setTimeout(()=> resultEl.classList.remove('flash'), 700);
+        const txt = (resultEl?.textContent||'').trim(); if (!txt || txt==='...') return;
+        await copyToClipboard(txt);
+        btnDrawCopy.disabled = true;
+        const prevClass = btnDrawCopy.className; const prevHTML = btnDrawCopy.innerHTML;
+        btnDrawCopy.className = prevClass.replace('btn-glass-primary','btn-glass-success');
+        btnDrawCopy.innerHTML = (ICONS.check||'已复制');
+        setTimeout(()=>{ btnDrawCopy.className = prevClass; btnDrawCopy.innerHTML = '抽取并复制'; btnDrawCopy.disabled = false; }, 1400);
+      });
+      frag.appendChild(card);
+    }
   });
+  // 桌面两列时：如当前卡片总数为奇数，先插入一个占位卡片，确保“编辑/添加”能并排在同一行
+  try{
+    const columnsIsTwo = window.innerWidth > 768;
+    const currentCount = 1 + tools.length; // 模板 + 工具
+    if (columnsIsTwo && (currentCount % 2 === 1)){
+      const spacer = document.createElement('div');
+      spacer.className = 'tool-card spacer-card';
+      spacer.setAttribute('aria-hidden','true');
+      frag.appendChild(spacer);
+    }
+  }catch{}
+
   // 添加卡片
+  // 编辑卡片（进入/退出排序模式）
+  const editBtn = document.createElement('button');
+  editBtn.className = 'tool-card edit-card';
+  editBtn.innerHTML = `<div class="plus">${ICONS.edit||'✎'}</div>`;
+  editBtn.title = '编辑';
+  editBtn.addEventListener('click', ()=>{
+    const gridEl = document.getElementById('toolsGrid');
+    if (!gridEl) return;
+    const entering = !gridEl.classList.contains('edit-mode');
+    const cards = gridEl.querySelectorAll('.tool-card:not(.add-card):not(.edit-card):not(.spacer-card)');
+    // 切换图标：编辑 -> 勾号，退出则恢复
+    const plus = editBtn.querySelector('.plus');
+    if (entering){
+      gridEl.classList.add('edit-mode');
+      cards.forEach(card => {
+        card.classList.remove('shake-1', 'shake-2', 'shake-3', 'shake-4');
+        const shakeType = Math.floor(Math.random() * 4) + 1;
+        card.classList.add(`shake-${shakeType}`);
+      });
+      plus.innerHTML = ICONS.check || '✔';
+      enableToolsReorder(gridEl);
+      // 出现动效
+      gridEl.querySelectorAll('.tool-card .title .ghost').forEach(btn=>{
+        btn.classList.remove('pop-out');
+        btn.classList.add('pop-in');
+        setTimeout(()=> btn.classList.remove('pop-in'), 220);
+      });
+    } else {
+      plus.innerHTML = ICONS.edit || '✎';
+      // 播放隐藏动效，完成后再移除 edit-mode
+      const ghosts = Array.from(gridEl.querySelectorAll('.tool-card .title .ghost'));
+      ghosts.forEach(btn=>{
+        btn.classList.remove('pop-in');
+        btn.classList.add('pop-out');
+      });
+      disableToolsReorder(gridEl);
+      // 退出编辑模式时，移除所有卡片的晃动动画类
+      cards.forEach(card => {
+        card.classList.remove('shake-1', 'shake-2', 'shake-3', 'shake-4');
+      });
+      setTimeout(()=>{
+        gridEl.classList.remove('edit-mode');
+        ghosts.forEach(btn=> btn.classList.remove('pop-out'));
+      }, 200);
+    }
+  });
+  frag.appendChild(editBtn);
+
   const add = document.createElement('button');
   add.className = 'tool-card add-card';
   add.innerHTML = '<div class="plus">+</div>';
@@ -1737,6 +1766,236 @@ function renderRandomTools(){
   frag.appendChild(add);
   grid.innerHTML = '';
   grid.appendChild(frag);
+  // 若当前处于编辑模式，重新启用拖拽监听
+  if (grid.classList.contains('edit-mode')){
+    enableToolsReorder(grid);
+    // 同步编辑按钮图标为勾号
+    const editBtn = grid.querySelector('.tool-card.edit-card .plus');
+    if (editBtn) editBtn.innerHTML = ICONS.check || '✔';
+  }
+}
+
+// 拖拽/指针排序实现（桌面 Drag & Drop + 移动端 Pointer Events）
+let toolsDragState = null;
+function createCardPlaceholder(el){
+  const ph = document.createElement('div');
+  ph.className = 'tool-card placeholder';
+  ph.style.height = el.offsetHeight + 'px';
+  return ph;
+}
+function getSortableList(grid){
+  return Array.from(grid.querySelectorAll('.tool-card')).filter(el=>
+    !el.classList.contains('add-card') &&
+    !el.classList.contains('edit-card') &&
+    !el.classList.contains('spacer-card')
+  );
+}
+function getIndexInSortable(grid, el){
+  return getSortableList(grid).indexOf(el);
+}
+function enableToolsReorder(grid){
+  enableToolsDrag(grid);
+  enableToolsPointer(grid);
+}
+function disableToolsReorder(grid){
+  disableToolsDrag(grid);
+  disableToolsPointer(grid);
+}
+function enableToolsDrag(grid){
+  // 仅对 tool-card 且不含 add-card/edit-card 的项启用拖拽
+  const items = Array.from(grid.querySelectorAll('.tool-card'))
+    .filter(el=> !el.classList.contains('add-card') && !el.classList.contains('edit-card') && !el.classList.contains('spacer-card'));
+  items.forEach((el, idx)=>{
+    el.setAttribute('draggable', 'true');
+    el.addEventListener('dragstart', onToolDragStart);
+    el.addEventListener('dragover', onToolDragOver);
+    el.addEventListener('drop', onToolDrop);
+    el.addEventListener('dragend', onToolDragEnd);
+  });
+}
+function disableToolsDrag(grid){
+  const items = Array.from(grid.querySelectorAll('.tool-card'));
+  items.forEach(el=>{
+    el.removeAttribute('draggable');
+    el.removeEventListener('dragstart', onToolDragStart);
+    el.removeEventListener('dragover', onToolDragOver);
+    el.removeEventListener('drop', onToolDrop);
+    el.removeEventListener('dragend', onToolDragEnd);
+  });
+}
+function onToolDragStart(e){
+  // 若正在进行 Pointer 拖拽，阻止 HTML5 DnD 干扰
+  if (pointerState){ try{ e.preventDefault(); }catch{} return; }
+  const el = e.currentTarget;
+  el.classList.add('dragging');
+  const grid = document.getElementById('toolsGrid');
+  const placeholder = createCardPlaceholder(el);
+  // 在原位置放入占位元素，源元素隐藏，后续移动占位符
+  grid.insertBefore(placeholder, el);
+  el.style.visibility = 'hidden';
+  toolsDragState = { src: el, placeholder, startIndex: getToolIndex(el) };
+  try{ e.dataTransfer.setData('text/plain', 'tool'); }catch{}
+}
+function onToolDragOver(e){
+  e.preventDefault();
+  const target = e.currentTarget;
+  const grid = document.getElementById('toolsGrid');
+  if (!grid || !toolsDragState) return;
+  if (target === toolsDragState.src || target === toolsDragState.placeholder) return;
+  const ph = toolsDragState.placeholder;
+  const list = getSortableList(grid);
+  const phIdx = list.indexOf(ph);
+  const tgtIdx = list.indexOf(target);
+  if (phIdx<0 || tgtIdx<0) return;
+  const before = tgtIdx > phIdx ? target.nextSibling : target;
+  grid.insertBefore(ph, before);
+}
+function onToolDrop(e){ e.preventDefault(); }
+function onToolDragEnd(){
+  const grid = document.getElementById('toolsGrid');
+  if (!grid || !toolsDragState) return;
+  const { src, placeholder } = toolsDragState;
+  src.classList.remove('dragging');
+  // 将源元素放回占位符位置
+  if (placeholder && placeholder.parentNode===grid){
+    grid.insertBefore(src, placeholder);
+    placeholder.remove();
+  }
+  src.style.visibility = '';
+  // 保存顺序：读取 DOM 顺序并同步到本地存储（仅对“用户工具”和“随机数实例卡片”）
+  persistToolsOrderFromDOM(grid);
+  toolsDragState = null;
+}
+function getToolIndex(el){
+  const grid = document.getElementById('toolsGrid'); if (!grid) return -1;
+  const arr = Array.from(grid.querySelectorAll('.tool-card'))
+    .filter(x=> !x.classList.contains('add-card') && !x.classList.contains('edit-card') && !x.classList.contains('spacer-card'));
+  return arr.indexOf(el);
+}
+function persistToolsOrderFromDOM(grid){
+  // 保存顺序为 ['num', 'tool:<id>', ...]
+  const cards = Array.from(grid.querySelectorAll('.tool-card'))
+    .filter(el=> !el.classList.contains('add-card') && !el.classList.contains('edit-card') && !el.classList.contains('spacer-card'));
+  const keys = cards.map(c=> c.classList.contains('num-template') ? 'num' : (c.dataset.toolId ? `tool:${c.dataset.toolId}` : null)).filter(Boolean);
+  try{ localStorage.setItem(LS_TOOLS_ORDER_KEY, JSON.stringify(keys)); }catch{}
+}
+
+// Pointer Events（移动端）实现
+let pointerState = null;
+function enableToolsPointer(grid){
+  const items = Array.from(grid.querySelectorAll('.tool-card'))
+    .filter(el=> !el.classList.contains('add-card') && !el.classList.contains('edit-card') && !el.classList.contains('spacer-card'));
+  items.forEach(el=>{
+    el.addEventListener('pointerdown', onToolPointerDown, {passive:false});
+  });
+}
+function disableToolsPointer(grid){
+  const items = Array.from(grid.querySelectorAll('.tool-card'));
+  items.forEach(el=>{
+    el.removeEventListener('pointerdown', onToolPointerDown);
+  });
+  if (pointerState){
+    window.removeEventListener('pointermove', onToolPointerMove);
+    window.removeEventListener('pointerup', onToolPointerUp);
+    pointerState = null;
+  }
+}
+function onToolPointerDown(e){
+  // 仅编辑模式启用
+  const grid = document.getElementById('toolsGrid');
+  if (!grid || !grid.classList.contains('edit-mode')) return;
+  // 避免按钮等可点击元素触发拖拽
+  if (e.target.closest('button')) return;
+  const el = e.currentTarget;
+  if (el.classList.contains('add-card') || el.classList.contains('edit-card') || el.classList.contains('spacer-card')) return;
+  e.preventDefault();
+  el.classList.add('dragging');
+  const rect = el.getBoundingClientRect();
+  // 放置占位符
+  const placeholder = createCardPlaceholder(el);
+  grid.insertBefore(placeholder, el);
+  // 将源卡片移到 body 作为 fixed 浮层，避免祖先 transform/滚动影响
+  try{ document.body.appendChild(el); }catch{}
+  // 让源卡片浮动跟随手指（以按下位置为中心）
+  el.classList.add('drag-floating');
+  el.style.width = rect.width + 'px';
+  el.style.height = rect.height + 'px';
+  const offsetX = e.clientX - rect.left;
+  const offsetY = e.clientY - rect.top;
+  el.style.left = (e.clientX - offsetX) + 'px';
+  el.style.top = (e.clientY - offsetY) + 'px';
+  pointerState = {
+    src: el,
+    placeholder,
+    offsetX,
+    offsetY
+  };
+  window.addEventListener('pointermove', onToolPointerMove, {passive:false});
+  window.addEventListener('pointerup', onToolPointerUp, {passive:false});
+}
+function onToolPointerMove(e){
+  if (!pointerState) return;
+  e.preventDefault();
+  const grid = document.getElementById('toolsGrid'); if (!grid) return;
+  const src = pointerState.src;
+  // 更新浮动位置
+  src.style.left = (e.clientX - pointerState.offsetX) + 'px';
+  src.style.top = (e.clientY - pointerState.offsetY) + 'px';
+  const over = document.elementFromPoint(e.clientX, e.clientY);
+  const target = over?.closest?.('.tool-card');
+  if (!target || target===src || target===pointerState.placeholder) return;
+  if (target.classList.contains('add-card') || target.classList.contains('edit-card') || target.classList.contains('spacer-card')) return;
+  const list = getSortableList(grid);
+  const phIdx = list.indexOf(pointerState.placeholder);
+  const tgtIdx = list.indexOf(target);
+  if (phIdx<0 || tgtIdx<0) return;
+  const before = tgtIdx > phIdx ? target.nextSibling : target;
+  grid.insertBefore(pointerState.placeholder, before);
+}
+function onToolPointerUp(e){
+  if (!pointerState) return;
+  const grid = document.getElementById('toolsGrid');
+  const src = pointerState.src;
+  src.classList.remove('dragging');
+  // 将源卡片放到占位符位置并清理浮动样式
+  if (pointerState.placeholder && pointerState.placeholder.parentNode===grid){
+    grid.insertBefore(src, pointerState.placeholder);
+    pointerState.placeholder.remove();
+  }
+  src.classList.remove('drag-floating');
+  src.style.left = '';
+  src.style.top = '';
+  src.style.width = '';
+  src.style.height = '';
+  persistToolsOrderFromDOM(grid);
+  window.removeEventListener('pointermove', onToolPointerMove);
+  window.removeEventListener('pointerup', onToolPointerUp);
+  pointerState = null;
+}
+
+// 获取某个随机数实例卡片在 numCards 列表中的当前索引
+function getNumCardIndexFromEl(card){
+  const grid = document.getElementById('toolsGrid'); if (!grid) return -1;
+  const arr = Array.from(grid.querySelectorAll('.tool-card'))
+    .filter(el=> !el.classList.contains('num-template') && !el.classList.contains('edit-card') && !el.classList.contains('add-card'));
+  // 前面可能有若干“随机数实例”卡片，后面跟着工具卡片；我们只在含有 .num-inline 的卡中找索引
+  const nums = arr.filter(el=> el.querySelector('.num-inline'));
+  if (card?.dataset?.numId){
+    const ids = nums.map(el=> el.dataset.numId || '');
+    return ids.indexOf(card.dataset.numId);
+  }
+  return nums.indexOf(card);
+}
+
+function openToolEditorById(id){
+  const tools = loadTools();
+  const idx = tools.findIndex(t=> (t.id||'')===id);
+  if (idx>=0) openToolEditor(idx); else openToolEditor(null);
+}
+function openToolEditorByTitle(title){
+  const tools = loadTools();
+  const idx = tools.findIndex(t=> (t.title||'')===title);
+  if (idx>=0) openToolEditor(idx); else openToolEditor(null);
 }
 
 // 编辑弹窗（标题 + 内容 + 随机词条）
@@ -1768,7 +2027,6 @@ function ensureToolEditor(){
           <div id="entryCards" class="entry-cards"></div>
         </div>
         <div class="tool-editor-actions" style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
-          <button class="btn-glass btn-glass-danger" id="cancelTool">取消</button>
           <button class="btn-glass btn-glass-primary" id="saveTool">保存</button>
         </div>
       </div>
@@ -1781,7 +2039,6 @@ function ensureToolEditor(){
   // 绑定输入，同步到本地编辑态
   modal.querySelector('#toolTitleInput').addEventListener('input', (e)=>{ if (toolEditorData) toolEditorData.title = e.target.value; });
   modal.querySelector('#toolContentInput').addEventListener('input', (e)=>{ if (toolEditorData) toolEditorData.content = e.target.value; });
-  modal.querySelector('#cancelTool').addEventListener('click', closeToolEditor);
   modal.querySelector('#saveTool').addEventListener('click', saveToolFromEditor);
   return modal;
 }
@@ -1807,7 +2064,6 @@ function ensureEntryEditor(){
           <div id="entryValuesList" class="values-list"></div>
         </div>
         <div class="tool-editor-actions" style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
-          <button class="btn-glass btn-glass-danger" id="cancelEntry">取消</button>
           <button class="btn-glass btn-glass-primary" id="saveEntry">保存</button>
         </div>
       </div>
@@ -1818,7 +2074,6 @@ function ensureEntryEditor(){
   modal.addEventListener('click', (e)=>{ if (e.target===modal) closeEntryEditor(); });
   modal.querySelector('#closeEntryEditorX').addEventListener('click', closeEntryEditor);
   modal.querySelector('#addEntryValue').addEventListener('click', ()=> addEntryValueRow(''));
-  modal.querySelector('#cancelEntry').addEventListener('click', closeEntryEditor);
   modal.querySelector('#saveEntry').addEventListener('click', saveEntryFromEditor);
   return modal;
 }
@@ -1992,6 +2247,74 @@ function drawTool(tool){
 }
 
 // END OF FILE
+
+// 预设编辑弹窗（随机数）
+let numPresetModal = null;
+function ensureNumPresetEditor(){
+  if (numPresetModal) return numPresetModal;
+  const m = document.createElement('div');
+  m.className = 'modal';
+  m.id = 'numPresetEditorModal';
+  m.innerHTML = `
+    <div class="dialog onboarding-dialog" style="max-width:640px">
+      <button class="modal-x" id="closeNumPresetX" aria-label="关闭" title="关闭">×</button>
+      <h3 style="margin:0 0 6px; text-align:center; color:#6db3ff">管理随机数预设</h3>
+  <div id="numPresetList" class="values-list num-preset-list"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px">
+        <button class="btn-glass btn-glass-secondary" id="addNumPreset">添加预设</button>
+        <button class="btn-glass btn-glass-primary" id="saveNumPreset">保存</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', (e)=>{ if (e.target===m) hideModal(numPresetModal); });
+  m.querySelector('#closeNumPresetX').addEventListener('click', ()=> hideModal(numPresetModal));
+  m.querySelector('#addNumPreset').addEventListener('click', ()=>{
+    const list = loadNumPresets();
+    list.push({ id: crypto.randomUUID?.()||String(Date.now()+Math.random()), count:1, min:1, max:6 });
+    saveNumPresets(list); renderNumPresetRows();
+  });
+  m.querySelector('#saveNumPreset').addEventListener('click', ()=> hideModal(numPresetModal));
+  numPresetModal = m;
+  return m;
+}
+function renderNumPresetRows(){
+  ensureNumPresetEditor();
+  const host = numPresetModal.querySelector('#numPresetList');
+  host.innerHTML='';
+  const list = loadNumPresets();
+  list.forEach(p=>{
+    const row = document.createElement('div');
+    row.className = 'num-preset-row';
+    row.innerHTML = `
+      <div class="np-field np-name-wrap"><div class="np-lab">名称</div><input class="np-name" type="text" placeholder="名称" value="${escapeHtml(p.name||'')}"></div>
+      <div class="np-field np-count-wrap"><div class="np-lab">抽取数量</div><input class="np-count" type="number" min="1" max="10" value="${escapeHtml(String(p.count||1))}"></div>
+      <div class="np-field np-min-wrap"><div class="np-lab">最小值</div><input class="np-min" type="number" value="${escapeHtml(String(p.min||1))}"></div>
+      <div class="np-field np-max-wrap"><div class="np-lab">最大值</div><input class="np-max" type="number" value="${escapeHtml(String(p.max||6))}"></div>
+      <div class="np-ops" style="display:flex; gap:6px; justify-content:flex-end">
+        <button class="ghost mini np-del" title="删除">${ICONS.del}</button>
+      </div>`;
+    row.querySelector('.np-name').addEventListener('input', (e)=>{ p.name = e.target.value; saveNumPresets(list); });
+    row.querySelector('.np-count').addEventListener('input', (e)=>{ let v=parseInt(e.target.value||'1',10); if (v>10){ v=10; e.target.value='10'; } p.count = Math.max(1, v||1); saveNumPresets(list); });
+    row.querySelector('.np-min').addEventListener('input', (e)=>{ p.min = parseInt(e.target.value||'1',10); saveNumPresets(list); });
+    row.querySelector('.np-max').addEventListener('input', (e)=>{ p.max = parseInt(e.target.value||'6',10); saveNumPresets(list); });
+    row.querySelector('.np-del').addEventListener('click', async ()=>{
+      const ok = await showConfirm('删除该预设？'); if (!ok) return;
+      const idx = list.findIndex(x=> x.id===p.id); if (idx>=0){ list.splice(idx,1); saveNumPresets(list); renderNumPresetRows(); }
+    });
+    host.appendChild(row);
+  });
+}
+function openNumPresetEditor(onCloseRefresh){
+  ensureNumPresetEditor();
+  renderNumPresetRows();
+  showModal(numPresetModal);
+  // 可选：关闭后刷新下拉
+  if (typeof onCloseRefresh==='function'){
+    const once = ()=>{ numPresetModal.removeEventListener('transitionend', once); onCloseRefresh(); };
+    // 简化：延时调用
+    setTimeout(()=> onCloseRefresh(), 350);
+  }
+}
 
 // 角色详情弹窗（图鉴点击）
 const roleModal = document.createElement('div');

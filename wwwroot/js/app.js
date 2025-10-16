@@ -66,13 +66,67 @@ function saveRects() { localStorage.setItem('avatarSideRects', JSON.stringify(re
 function clearRects() { localStorage.removeItem('avatarSideRects'); loadRects(); }
 loadRects();
 
-// 会话状态（不持久化）
+// 会话状态（部分持久化）
 let myP = '';
-let bpMode = '';
+bpMode = '';
 let rounds = [];
 let usedBy = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
 let usedGlobal = new Set();
 let clearedBefore = {}; // name -> lastClearedRoundIdx
+
+function saveSessionToCache() {
+  const sessionData = { myP, bpMode, rounds, clearedBefore };
+  localStorage.setItem('avatarSideSession', JSON.stringify(sessionData));
+}
+
+function loadSessionFromCache() {
+  const forceOnboarding = localStorage.getItem('avatarSideForceOnboarding') === 'true';
+  if (forceOnboarding) {
+    localStorage.removeItem('avatarSideForceOnboarding');
+    resetSession(true);
+    return false;
+  }
+
+  const s = localStorage.getItem('avatarSideSession');
+  if (s) {
+    try {
+      const data = JSON.parse(s);
+      if (data && typeof data === 'object') {
+        myP = data.myP || '';
+        bpMode = data.bpMode || '';
+        rounds = Array.isArray(data.rounds) ? data.rounds : [];
+        clearedBefore = typeof data.clearedBefore === 'object' ? data.clearedBefore : {};
+        
+        rebuildUsageSetsFromRounds();
+        renderRoundNo();
+        refreshCurrentPanelFromLastRound();
+        renderCatalog();
+        
+        const hasRects = !!localStorage.getItem('avatarSideRects');
+        let shouldOpenOnboarding = !hasRects || !myP || !bpMode || rounds.length === 0;
+        if (!shouldOpenOnboarding && rounds.length > 0) {
+          // 检查所有轮次的所有数据是否都识别失败
+          const allFailed = rounds.every(round => 
+            !round.entries || round.entries.every(entry => !entry.name)
+          );
+          if (allFailed) {
+            shouldOpenOnboarding = true;
+          }
+        }
+        
+        if (shouldOpenOnboarding) {
+            openOnboarding();
+        } else {
+            roundTip.textContent='';
+        }
+        return true;
+      }
+    } catch (e) {
+      console.error("Failed to load session from cache", e);
+    }
+  }
+  return false;
+}
 
 const EMPTY_STATE_IMAGES = [
   'https://upload-bbs.miyoushe.com/upload/2025/02/06/407777514/8ebf44386bf85cf59162bef464e38308_4367846965199814690.png',
@@ -122,7 +176,9 @@ function pickEmptyImage(){
 }
 
 // 初始进入时弹出入门引导
-resetSession(true);
+if (!loadSessionFromCache()) {
+  resetSession(true);
+}
 // 统一名称：将“空”“荧”（及常见写法）都视为“旅行者”
 function normalizeName(name){
   const n = (name||'').trim();
@@ -150,6 +206,7 @@ function resetSession(showOnboarding=true) {
   myP = '';
   bpMode = '';
   clearedBefore = {};
+  localStorage.removeItem('avatarSideSession');
   renderRoundPanel([]);
   roundTip.textContent = '请先选择“我是谁(P)”与“BP模式”，并完成校准。';
   renderRoundNo();
@@ -238,13 +295,13 @@ document.getElementById('closeOnboardingX')?.addEventListener('click', closeOnbo
 // P select
 if (pButtons){
   pButtons.querySelectorAll('button').forEach(b=>{
-    b.addEventListener('click', ()=>{ myP = String(parseInt(b.dataset.p,10)); updateOnboardingUI(); renderCatalog(); });
+    b.addEventListener('click', ()=>{ myP = String(parseInt(b.dataset.p,10)); updateOnboardingUI(); renderCatalog(); saveSessionToCache(); });
   });
 }
 // mode select
 if (modeButtons){
   modeButtons.querySelectorAll('button').forEach(b=>{
-    b.addEventListener('click', ()=>{ bpMode = b.dataset.mode || ''; rebuildUsageSetsFromRounds(); updateOnboardingUI(); renderCatalog(); });
+    b.addEventListener('click', ()=>{ bpMode = b.dataset.mode || ''; rebuildUsageSetsFromRounds(); updateOnboardingUI(); renderCatalog(); saveSessionToCache(); });
   });
 }
 // calib start/recalib
@@ -780,7 +837,20 @@ function checkConflictsAndComposeRound(resultsByP){
 function commitUsage(round){
   // 仅追加历史；usedBy/usedGlobal 由 rebuildUsageSetsFromRounds 基于 clearedBefore 自动重建
   rounds.push({ at: new Date().toISOString(), entries: round.map(({p,name,from,confidence})=>({p,name,from,confidence})) });
+
+  // 检查所有轮次的所有数据是否都识别失败
+  const allFailed = rounds.every(r => 
+    !r.entries || r.entries.every(entry => !entry.name || entry.name === '——')
+  );
+
+  if (allFailed) {
+    localStorage.setItem('avatarSideForceOnboarding', 'true');
+  } else {
+    localStorage.removeItem('avatarSideForceOnboarding');
+  }
+
   renderRoundNo();
+  saveSessionToCache();
 }
 
 function renderRoundPanel(round){
@@ -1126,6 +1196,7 @@ function applyManual(p, name){
   renderRoundPanel(validated);
   renderCatalog();
   if (document.getElementById('historySection')?.style.display==='block') renderHistory();
+  saveSessionToCache();
 }
 
 // （已在文件顶部初始化时调用 resetSession(true)）
@@ -1179,6 +1250,16 @@ function getLastUsageInfo(name, excludeLast=false){
 function renderCatalog(){
   const data = window.characterData || {};
   const entries = Object.entries(data);
+
+  // Sort entries: used characters first
+  entries.sort(([nameA], [nameB]) => {
+    const usedA = getUsedPsForBP(nameA).length > 0;
+    const usedB = getUsedPsForBP(nameB).length > 0;
+    if (usedA && !usedB) return -1;
+    if (!usedA && usedB) return 1;
+    return 0;
+  });
+
   catalogGrid.innerHTML = '';
   const frag = document.createDocumentFragment();
   const usageMap = buildUsageByName();
@@ -2379,6 +2460,7 @@ function clearRoleBPUpToCurrent(name){
   renderCatalog();
   if (document.getElementById('historySection')?.style.display==='block') renderHistory();
   renderRoleUsageList(name);
+  saveSessionToCache();
 }
 
 function refreshCurrentPanelFromLastRound(){

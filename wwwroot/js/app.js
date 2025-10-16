@@ -13,6 +13,10 @@ const btnRecalib = document.getElementById('btnRecalib');
 const pButtons = document.getElementById('pButtons');
 const modeButtons = document.getElementById('modeButtons');
 const btnStartApp = document.getElementById('btnStartApp');
+const btnCustomBp = document.getElementById('btnCustomBp');
+// const customBpModal = document.getElementById('customBpModal');
+// const closeCustomBpModalX = document.getElementById('closeCustomBpModalX');
+// const saveCustomBp = document.getElementById('saveCustomBp');
 // Calibration modal controls
 const openCalibrate = document.getElementById('openCalibrate');
 const calibModal = document.getElementById('calibModal');
@@ -68,14 +72,15 @@ loadRects();
 
 // 会话状态（部分持久化）
 let myP = '';
-bpMode = '';
+let bpMode = '';
 let rounds = [];
 let usedBy = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
 let usedGlobal = new Set();
 let clearedBefore = {}; // name -> lastClearedRoundIdx
 
 function saveSessionToCache() {
-  const sessionData = { myP, bpMode, rounds, clearedBefore };
+  const bpModeSave = (typeof bpMode === 'object') ? '' : bpMode;
+  const sessionData = { myP, bpMode: bpModeSave, rounds, clearedBefore };
   localStorage.setItem('avatarSideSession', JSON.stringify(sessionData));
 }
 
@@ -93,7 +98,13 @@ function loadSessionFromCache() {
       const data = JSON.parse(s);
       if (data && typeof data === 'object') {
         myP = data.myP || '';
-        bpMode = data.bpMode || '';
+        if (typeof data.bpMode === 'string') {
+          bpMode = data.bpMode;
+        } else if (typeof data.bpMode === 'object') {
+          bpMode = data.bpMode;
+        } else {
+          bpMode = '';
+        }
         rounds = Array.isArray(data.rounds) ? data.rounds : [];
         clearedBefore = typeof data.clearedBefore === 'object' ? data.clearedBefore : {};
         
@@ -197,14 +208,23 @@ function normalizeName(name){
 
 function canRunRecognition() {
   const hasRects = !!localStorage.getItem('avatarSideRects');
-  return hasRects && myP && bpMode;
+  // bpMode can be either:
+  // - a string: 'global' | 'personal' | 'off' (when selecting a single mode for both rarities)
+  // - an object: { fourStar: 'global'|'personal'|'off', fiveStar: ... } (custom per-rarity)
+  const hasBpSelected = (() => {
+    if (!bpMode) return false;
+    if (typeof bpMode === 'string') return bpMode.length > 0;
+    if (typeof bpMode === 'object') return !!(bpMode.fourStar || bpMode.fiveStar);
+    return false;
+  })();
+  return hasRects && myP && hasBpSelected;
 }
 function resetSession(showOnboarding=true) {
   rounds = [];
   usedBy = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
   usedGlobal = new Set();
   myP = '';
-  bpMode = '';
+  bpMode = { fourStar: 'global', fiveStar: 'global' };
   clearedBefore = {};
   localStorage.removeItem('avatarSideSession');
   renderRoundPanel([]);
@@ -276,13 +296,21 @@ function updateOnboardingUI(){
   // highlight selected mode
   if (modeButtons){
     modeButtons.querySelectorAll('button').forEach(b=>{
-      const sel = (bpMode && b.dataset.mode===bpMode);
+      let sel = false;
+      const mode = b.dataset.mode;
+      if (mode === 'custom') {
+        sel = bpMode && (typeof bpMode === 'object');
+      } else {
+        sel = bpMode && (typeof bpMode === 'string') && (mode === bpMode);
+      }
       b.classList.toggle('primary', sel);
     });
   }
   // 使用 aria-disabled 控制视觉状态，但保持按钮可点击以便给出反馈
   const disabled = !canRunRecognition();
   btnStartApp.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+  // update BP mode display under results
+  updateBpModeText();
 }
 
 function openOnboarding(){
@@ -301,7 +329,18 @@ if (pButtons){
 // mode select
 if (modeButtons){
   modeButtons.querySelectorAll('button').forEach(b=>{
-    b.addEventListener('click', ()=>{ bpMode = b.dataset.mode || ''; rebuildUsageSetsFromRounds(); updateOnboardingUI(); renderCatalog(); saveSessionToCache(); });
+    b.addEventListener('click', ()=>{ 
+      const mode = b.dataset.mode;
+      if (mode === 'custom') {
+        openCustomBpModal();
+      } else {
+        bpMode = mode || ''; 
+        rebuildUsageSetsFromRounds(); 
+        updateOnboardingUI(); 
+        renderCatalog(); 
+        saveSessionToCache();
+      }
+    });
   });
 }
 // calib start/recalib
@@ -813,18 +852,26 @@ function checkConflictsAndComposeRound(resultsByP){
     }
     const raw = r.nameCn || r.display || r.predicted || '';
     const name = normalizeName(raw);
-    const conflict = (bpMode==='personal') ? usedBy[p].has(name) : usedGlobal.has(name);
+    const character = window.characterData[name];
+    const rarity = character ? (character['星级'] === '五星' ? 'fiveStar' : 'fourStar') : null;
+    const currentBpMode = typeof bpMode === 'object' ? (rarity ? bpMode[rarity] : 'off') : bpMode;
+
+    let conflict = false;
     let reason = '';
-    if (conflict){
-      if (bpMode==='personal'){
-        reason = `P${p} 已使用过 ${name}`;
-      } else {
-        const info = getLastUsageInfo(name, false);
-        if (info){
-          const psTxt = info.ps.map(x=>`${x}P`).join(' / ');
-          reason = `${name} 在第${info.round}轮 已被 ${psTxt} 使用`;
+
+    if (currentBpMode !== 'off') {
+      conflict = (currentBpMode === 'personal') ? usedBy[p].has(name) : usedGlobal.has(name);
+      if (conflict) {
+        if (currentBpMode === 'personal') {
+          reason = `P${p} 已使用过 ${name}`;
         } else {
-          reason = `${name} 已被使用（全局BP）`;
+          const info = getLastUsageInfo(name, false);
+          if (info) {
+            const psTxt = info.ps.map(x => `${x}P`).join(' / ');
+            reason = `${name} 在第${info.round}轮 已被 ${psTxt} 使用`;
+          } else {
+            reason = `${name} 已被使用（全局BP）`;
+          }
         }
       }
     }
@@ -900,6 +947,8 @@ function renderRoundPanel(round){
     });
   });
   if (!myP || !bpMode) roundTip.textContent = '提示：先选择“我是谁(P)”与“BP模式”。'; else roundTip.textContent = '';
+  // Also refresh BP mode display
+  updateBpModeText();
 }
 
 function renderRoundNo(){
@@ -1132,9 +1181,17 @@ function rebuildUsageSetsFromRounds(){
   // 重建 usedBy 与 usedGlobal 与 rounds 对齐
   usedBy = aggregateUsedBy(false);
   usedGlobal = new Set();
-  if (bpMode==='global'){
-    for (const p of [1,2,3,4]){
-      for (const nm of usedBy[p]) usedGlobal.add(nm);
+  const isGlobalMode = (typeof bpMode === 'string' && bpMode === 'global') || (typeof bpMode === 'object');
+  if (isGlobalMode) {
+    for (const p of [1, 2, 3, 4]) {
+      for (const nm of usedBy[p]) {
+        const character = window.characterData[nm];
+        const rarity = character ? (character['星级'] === '五星' ? 'fiveStar' : 'fourStar') : null;
+        const currentBpMode = typeof bpMode === 'object' ? (rarity ? bpMode[rarity] : 'off') : bpMode;
+        if (currentBpMode === 'global') {
+          usedGlobal.add(nm);
+        }
+      }
     }
   }
 }
@@ -1171,20 +1228,29 @@ function applyManual(p, name){
   const usedAnyPrev = new Set([...priorUsedBy[1], ...priorUsedBy[2], ...priorUsedBy[3], ...priorUsedBy[4]]);
   const validated = currentNames.map(e=>{
     const nm = normalizeName(e.name);
-    const avatarUrl = nm? (window.characterData[nm]?.头像||'') : '';
-    if (!nm) return { p:e.p, name:'', avatarUrl:'', from: (e.p===p?'manual':'auto'), conflict:false, reason:'未选择', editable:true };
-    const conflict = (bpMode==='personal') ? priorUsedBy[e.p].has(nm) : usedAnyPrev.has(nm);
+    const avatarUrl = nm ? (window.characterData[nm]?.头像 || '') : '';
+    if (!nm) return { p: e.p, name: '', avatarUrl: '', from: (e.p === p ? 'manual' : 'auto'), conflict: false, reason: '未选择', editable: true };
+
+    const character = window.characterData[nm];
+    const rarity = character ? (character['星级'] === '五星' ? 'fiveStar' : 'fourStar') : null;
+    const currentBpMode = typeof bpMode === 'object' ? (rarity ? bpMode[rarity] : 'off') : bpMode;
+
+    let conflict = false;
     let reason = '';
-    if (conflict){
-      if (bpMode==='personal'){
-        reason = `P${e.p} 已使用过 ${nm}`;
-      } else {
-        const info = getLastUsageInfo(nm, true);
-        if (info){
-          const psTxt = info.ps.map(x=>`${x}P`).join(' / ');
-          reason = `${nm} 在第${info.round}轮已被 ${psTxt} 使用`;
+
+    if (currentBpMode !== 'off') {
+      conflict = (currentBpMode === 'personal') ? priorUsedBy[e.p].has(nm) : usedAnyPrev.has(nm);
+      if (conflict) {
+        if (currentBpMode === 'personal') {
+          reason = `P${e.p} 已使用过 ${nm}`;
         } else {
-          reason = `${nm} 已被使用（全局BP）`;
+          const info = getLastUsageInfo(nm, true);
+          if (info) {
+            const psTxt = info.ps.map(x => `${x}P`).join(' / ');
+            reason = `${nm} 在第${info.round}轮已被 ${psTxt} 使用`;
+          } else {
+            reason = `${nm} 已被使用（全局BP）`;
+          }
         }
       }
     }
@@ -1277,16 +1343,22 @@ function renderCatalog(){
     div.innerHTML = `<img src="${info['头像']||''}" alt="${name}"><div class="nm">${html}</div>`;
 
     const usedPs = getUsedPsForBP(name);
-    if (bpMode==='global' && usedPs.length>0){
-      // 全局BP：红边 + 灰头像/名字 + 底部中间使用者P数
+    const character = window.characterData[name];
+    const rarity = character ? (character['星级'] === '五星' ? 'fiveStar' : 'fourStar') : null;
+    const currentBpMode = typeof bpMode === 'object' ? (rarity ? bpMode[rarity] : 'off') : bpMode;
+    // If BP is turned off for this rarity and there are used P slots, mark with special class
+    if (currentBpMode === 'off' && usedPs.length > 0) {
+      div.classList.add('used-bp-off');
+    }
+
+    if (currentBpMode === 'global' && usedPs.length > 0) {
       div.classList.add('used-global');
       const badge = document.createElement('div');
       badge.className = 'bp-badge';
-      badge.textContent = usedPs.map(p=>`P${p}`).join(' / ');
+      badge.textContent = usedPs.map(p => `P${p}`).join(' / ');
       div.appendChild(badge);
-    } else if (bpMode==='personal' && usedPs.length>0){
-      // 个人BP：四角分区边框，按 P 显示
-      usedPs.forEach(p=>{
+    } else if (currentBpMode === 'personal' && usedPs.length > 0) {
+      usedPs.forEach(p => {
         const corner = document.createElement('div');
         corner.className = `corner p${p}`;
         const label = document.createElement('span');
@@ -2471,27 +2543,171 @@ function refreshCurrentPanelFromLastRound(){
   const entries = [];
   for (let p=1;p<=4;p++){
     const e = (last.entries||[]).find(x=>x.p===p) || { p, name:'' };
-    const nm = e.name||'';
-    const avatarUrl = nm? (window.characterData[nm]?.头像||'') : '';
-    if (!nm) entries.push({ p, name:'', avatarUrl:'', from:e.from||'auto', conflict:false, reason:'未选择', editable:true });
-    else {
-      const conflict = (bpMode==='personal') ? priorUsedBy[p].has(nm) : usedAnyPrev.has(nm);
+    const nm = e.name || '';
+    const avatarUrl = nm ? (window.characterData[nm]?.头像 || '') : '';
+    if (!nm) {
+      entries.push({ p, name: '', avatarUrl: '', from: e.from || 'auto', conflict: false, reason: '未选择', editable: true });
+    } else {
+      const character = window.characterData[nm];
+      const rarity = character ? (character['星级'] === '五星' ? 'fiveStar' : 'fourStar') : null;
+      const currentBpMode = typeof bpMode === 'object' ? (rarity ? bpMode[rarity] : 'off') : bpMode;
+      let conflict = false;
       let reason = '';
-      if (conflict){
-        if (bpMode==='personal'){
-          reason = `P${p} 已使用过 ${nm}`;
-        } else {
-          const info = getLastUsageInfo(nm, false);
-          if (info){
-            const psTxt = info.ps.map(x=>`${x}P`).join(' / ');
-            reason = `${nm} 在第${info.round}轮 已被 ${psTxt} 使用`;
+      if (currentBpMode !== 'off') {
+        conflict = (currentBpMode === 'personal') ? priorUsedBy[p].has(nm) : usedAnyPrev.has(nm);
+        if (conflict) {
+          if (currentBpMode === 'personal') {
+            reason = `P${p} 已使用过 ${nm}`;
           } else {
-            reason = `${nm} 已被使用（全局BP）`;
+            const info = getLastUsageInfo(nm, true);
+            if (info) {
+              const psTxt = info.ps.map(x => `${x}P`).join(' / ');
+              reason = `${nm} 在第${info.round}轮已被 ${psTxt} 使用`;
+            } else {
+              reason = `${nm} 已被使用（全局BP）`;
+            }
           }
         }
       }
-      entries.push({ p, name:nm, avatarUrl, from:e.from||'auto', conflict, reason, editable:true });
+      entries.push({ p, name: nm, avatarUrl, from: e.from || 'auto', conflict, reason, editable: true });
     }
   }
   renderRoundPanel(entries);
+}
+
+// Custom BP Modal
+function openCustomBpModal() {
+  const customBpModal = document.getElementById('customBpModal');
+  if (!customBpModal) { console.warn('customBpModal element not found'); return; }
+  updateCustomBpModalUI();
+  showModal(customBpModal);
+}
+
+function closeCustomBpModal() {
+  const customBpModal = document.getElementById('customBpModal');
+  if (!customBpModal) return;
+  hideModal(customBpModal);
+}
+
+function updateCustomBpModalUI() {
+  const customBpModal = document.getElementById('customBpModal');
+  if (!customBpModal) return;
+  const fiveStarMode = (typeof bpMode === 'object') ? bpMode.fiveStar : 'global';
+  const fourStarMode = (typeof bpMode === 'object') ? bpMode.fourStar : 'global';
+
+  const fiveStarButtons = customBpModal.querySelector('[data-rarity="fiveStar"]');
+  if (fiveStarButtons) {
+    fiveStarButtons.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('primary', b.dataset.mode === fiveStarMode);
+    });
+  }
+  const fourStarButtons = customBpModal.querySelector('[data-rarity="fourStar"]');
+  if (fourStarButtons) {
+    fourStarButtons.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('primary', b.dataset.mode === fourStarMode);
+    });
+  }
+}
+
+// Attach modal event handlers when DOM element exists. If the script runs
+// before the modal is present in the DOM, wait for DOMContentLoaded and try again.
+function attachCustomBpModalHandlers() {
+  const customBpModal = document.getElementById('customBpModal');
+  if (!customBpModal) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachCustomBpModalHandlers, { once: true });
+      return;
+    }
+    console.warn('customBpModal element not found after DOMContentLoaded');
+    return;
+  }
+
+  const closeBtn = document.getElementById('closeCustomBpModalX');
+  if (closeBtn) closeBtn.addEventListener('click', closeCustomBpModal);
+
+  customBpModal.addEventListener('click', (e) => {
+    if (e.target.id === 'customBpModal') closeCustomBpModal();
+  });
+
+  const buttons = customBpModal.querySelectorAll('.bp-options button');
+  if (buttons && buttons.length) {
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const rarity = button.parentElement.dataset.rarity;
+        const mode = button.dataset.mode;
+        if (typeof bpMode !== 'object') {
+          bpMode = { fourStar: 'global', fiveStar: 'global' };
+        }
+        bpMode[rarity] = mode;
+        updateCustomBpModalUI();
+      });
+    });
+  }
+
+  const saveBtn = document.getElementById('saveCustomBp');
+  if (!saveBtn) {
+    console.warn('saveCustomBp element not found inside customBpModal');
+    return;
+  }
+  saveBtn.addEventListener('click', () => {
+    if (typeof bpMode !== 'object') {
+      bpMode = { fourStar: 'global', fiveStar: 'global' };
+    }
+    saveSessionToCache();
+    rebuildUsageSetsFromRounds();
+    updateOnboardingUI();
+    renderCatalog();
+    closeCustomBpModal();
+  });
+}
+
+attachCustomBpModalHandlers();
+
+// Update bp mode display text under the results area
+function updateBpModeText(){
+  const el = document.getElementById('bpModeText');
+  if (!el) return;
+  if (!bpMode) { el.textContent = ''; return; }
+
+  // normalize to object form for easier handling
+  let five = null, four = null;
+  if (typeof bpMode === 'string') {
+    five = bpMode; four = bpMode;
+  } else if (typeof bpMode === 'object') {
+    five = bpMode.fiveStar || null;
+    four = bpMode.fourStar || null;
+  }
+
+  // all-off case
+  if ((five === 'off' && four === 'off') || (typeof bpMode === 'string' && bpMode === 'off')){
+    el.textContent = 'BP模式已关闭';
+    return;
+  }
+
+  // both global
+  if (five === 'global' && four === 'global'){
+    el.textContent = '全局BP模式';
+    return;
+  }
+  // both personal
+  if (five === 'personal' && four === 'personal'){
+    el.textContent = '个人BP模式';
+    return;
+  }
+
+  // otherwise show per-rarity text: 五星xxBP 四星xxBP模式
+  const mapMode = (m) => {
+    if (!m) return '';
+    if (m === 'global') return '全局';
+    if (m === 'personal') return '个人';
+    if (m === 'off') return '关闭';
+    return m;
+  };
+  const fiveText = five ? `五星${mapMode(five)}BP` : '';
+  const fourText = four ? `四星${mapMode(four)}BP` : '';
+  const parts = [];
+  if (fiveText) parts.push(fiveText);
+  if (fourText) parts.push(fourText);
+  if (parts.length===0) { el.textContent = ''; return; }
+  el.textContent = parts.join(' ') + '模式';
 }

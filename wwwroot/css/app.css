@@ -7,10 +7,14 @@
   --muted:#9aa0a6;
   --primary:#3498db;
   --danger:#ff5353;
-  --p1:#ff8a00;
+  /* --p1:#ff8a00;
   --p2:#2ecc71;
   --p3:#2b90ff;
-  --p4:#ffd166;
+  --p4:#ffd166; */
+  --p1:#ff5353;
+  --p2:#ff5353;
+  --p3:#ff5353;
+  --p4:#ff5353;
   --shadow: rgba(0,0,0,0.25);
 }
 *{box-sizing:border-box}
@@ -136,7 +140,7 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 /* 角色选择器 */
 .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.55); z-index:1000; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity:0; transition: opacity .28s ease;}
 .modal.open{opacity:1}
-.modal .dialog{position:relative; width:min(1000px, 92vw); height:84vh; display:flex; flex-direction:column; overflow:hidden; background: rgba(255,255,255,0.10); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border:1px solid rgba(255,255,255,0.22); border-radius:20px; padding:28px 26px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.42), 0 0 0 1px rgba(255,255,255,0.08) inset; transform: scale(.90); transition: transform .32s cubic-bezier(.22,.75,.25,1), box-shadow .32s ease;}
+.modal .dialog{position:relative; width:min(1000px, 92vw); height:auto; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; background: rgba(255,255,255,0.10); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border:1px solid rgba(255,255,255,0.22); border-radius:20px; padding:28px 26px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.42), 0 0 0 1px rgba(255,255,255,0.08) inset; transform: scale(.90); transition: transform .32s cubic-bezier(.22,.75,.25,1), box-shadow .32s ease;}
 .modal .calib-video-dialog{ width:min(920px, 94vw); height:auto; max-height:88vh; }
 .modal .calib-video-dialog > div[style*="margin-top:10px"]{ flex:1 1 auto; display:flex; }
 #calibVideo{ width:100%; height:auto; max-height:70vh; object-fit:contain }
@@ -145,6 +149,10 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .onboarding-dialog{height:auto !important; max-height:90vh; overflow:auto; padding-top:24px;}
 .calib-dialog{height:auto !important; max-height:92vh; overflow:auto; padding-top:24px; display:flex; flex-direction:column;}
 .role-dialog{height:auto !important; max-height:85vh; width:clamp(560px, 70vw, 880px); max-width:94vw; display:flex; flex-direction:column;}
+
+#customBpModal .dialog{ width:clamp(320px, 86vw, 420px); height:auto !important; max-height:84vh; display:flex; flex-direction:column; overflow:hidden; padding:20px; }
+#customBpModal .dialog > .content { overflow:auto; max-height: calc(84vh - 80px); padding-right:8px; }
+#customBpModal .bp-options{ display:flex; gap:8px; flex-wrap:wrap }
 .role-header{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding-top:8px}
 .role-avatar{width:96px; height:96px; border-radius:14px; border:1px solid var(--border); object-fit:cover}
 .role-title{margin:6px 0 12px; text-align:center}
@@ -405,6 +413,12 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .value-row .value-del{border:1px solid var(--border); background:rgba(255,255,255,0.06);border-radius:8px; cursor:pointer}
 /* 预设列表：内容超出时滚动且隐藏滚动条 */
 .num-preset-list{max-height:60vh; overflow:auto; padding-right:4px; -ms-overflow-style: none; scrollbar-width: none}
+
+.citem.used-bp-off{box-shadow: 0 0 0 2px rgba(88, 214, 141, 0.18), 0 6px 20px rgba(6,80,39,0.12); border-radius:10px; outline: 1px solid rgba(88,214,141,0.9);}
+.citem.used-bp-off img{border-radius:8px;}
+
+/* BP 模式文本显示（当前结果区域下方的小字） */
+.bp-mode-text{font-size:12px; color:var(--muted); opacity:0.9}
 .num-preset-list::-webkit-scrollbar{display:none}
 
 /* 随机数预设管理弹窗 - 行与输入统一样式 */
@@ -634,3 +648,28 @@ body.modal-open{overflow:hidden}
 .spinner{width:48px; height:48px; border:4px solid rgba(255,255,255,0.25); border-top-color: var(--primary); border-radius:50%; animation: spin 0.9s linear infinite}
 .loading-text{color:#e6e6e6; font-size:14px}
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Custom BP Modal */
+.custom-bp-setting {
+  margin-top: 16px;
+}
+.custom-bp-setting label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #6db3ff;
+}
+.bp-options {
+  display: flex;
+  gap: 8px;
+}
+.bp-options .btn-glass {
+  flex: 1;
+  padding: 10px;
+}
+.bp-options .btn-glass.primary {
+  background: linear-gradient(135deg, rgba(43,144,255,.65), rgba(43,144,255,.35));
+  border-color: rgba(43,144,255,.95);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.30) inset, 0 6px 16px rgba(43,144,255,.50), 0 0 10px rgba(43,144,255,.60);
+}

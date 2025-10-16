@@ -41,6 +41,7 @@
             <h2 class="round-title">当前结果</h2>
             <div id="roundNo" class="round-no muted"></div>
             <div id="roundTip" class="muted"></div>
+            <div id="bpModeText" class="muted bp-mode-text" style="text-align:center;margin-top:6px"></div>
           </div>
           <div class="slots" id="roundSlots" style="margin-top:10px"></div>
             <div class="radio-inputs" id="viewSwitcher" role="tablist" aria-label="视图切换" style="margin:12px auto 0;">
@@ -127,6 +128,7 @@
               <div id="modeButtons" style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn-glass btn-glass-secondary" data-mode="personal">个人BP</button>
                 <button class="btn-glass btn-glass-secondary" data-mode="global">全局BP</button>
+                <button id="btnCustomBp" class="btn-glass btn-glass-secondary" data-mode="custom">自定义</button>
               </div>
             </div>
           </div>
@@ -190,7 +192,7 @@
       <div class="loading-text">正在识别，请稍候…</div>
     </div>
 
-    <!-- 校准视频教程弹窗 -->
+      <!-- 校准视频教程弹窗 -->
     <div id="calibVideoModal" class="modal" style="display:none">
       <div class="dialog calib-video-dialog">
         <button id="closeCalibVideoX" class="modal-x" aria-label="关闭" title="关闭">×</button>
@@ -202,6 +204,33 @@
             <source src="/1.mp4" type="video/mp4" />
             您的浏览器不支持视频标签。
           </video>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自定义BP模式弹窗 -->
+    <div id="customBpModal" class="modal" style="display: none;">
+      <div class="dialog" style="max-width: 400px;">
+        <button id="closeCustomBpModalX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+        <h2 style="color:#6db3ff;">自定义BP模式</h2>
+        <div class="custom-bp-setting">
+          <label>五星角色</label>
+          <div class="bp-options" data-rarity="fiveStar">
+            <button class="btn-glass btn-glass-secondary" data-mode="global">全局</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="personal">个人</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="off">关闭</button>
+          </div>
+        </div>
+        <div class="custom-bp-setting">
+          <label>四星角色</label>
+          <div class="bp-options" data-rarity="fourStar">
+            <button class="btn-glass btn-glass-secondary" data-mode="global">全局</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="personal">个人</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="off">关闭</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;margin-top:40px;">
+          <button id="saveCustomBp" class="btn-glass btn-glass-primary" style="width: 35%;">确定</button>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-# AvatarSideClassifierWeb
+# PickSnap
 
 简短说明：这是一个通过上传截图自动记录角色BP状态的应用。
 
@@ -24,14 +24,14 @@
 
 ```powershell
 # 示例：在桌面创建文件夹并进入
-mkdir AvatarSideClassifierWeb
-cd AvatarSideClassifierWeb
+mkdir PickSnap
+cd PickSnap
 ```
 
 2. 克隆仓库：
 
 ```powershell
-git clone https://github.com/kunkun11451/AvatarSideClassifierWeb.git .
+git clone https://github.com/kunkun11451/PickSnap.git .
 ```
 
 3. 启动应用：
@@ -62,7 +62,7 @@ $proc.Id
 - 如果需要查看 dotnet 进程的完整命令行，可使用：
 
 ```powershell
-Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "AvatarSideClassifierWeb" } | Select-Object ProcessId, CommandLine
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "PickSnap" } | Select-Object ProcessId, CommandLine
 ```
 
 ## 贡献

@@ -79,9 +79,13 @@ let usedGlobal = new Set();
 let clearedBefore = {}; // name -> lastClearedRoundIdx
 
 function saveSessionToCache() {
-  const bpModeSave = (typeof bpMode === 'object') ? '' : bpMode;
-  const sessionData = { myP, bpMode: bpModeSave, rounds, clearedBefore };
-  localStorage.setItem('avatarSideSession', JSON.stringify(sessionData));
+  const sessionData = { myP, bpMode, rounds, clearedBefore };
+  try {
+    localStorage.setItem('avatarSideSession', JSON.stringify(sessionData));
+  } catch (e) {
+    // Fallback: if serialization fails for any reason, don't block the app.
+    console.error('Failed to save session to cache', e);
+  }
 }
 
 function loadSessionFromCache() {

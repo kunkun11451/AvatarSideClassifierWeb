@@ -1,0 +1,151 @@
+:root.theme-light, body.theme-light {
+  --bg: #f6f7f9;
+  --panel: rgba(255,255,255,0.9);
+  --border: rgba(31,41,55,0.08);
+  --text: #4d4d4d;
+  --muted: #546170;
+  --primary: #2b90ff;
+  --danger: #d9534f;
+  --p1: #ff6b6b;
+  --p2: #ff6b6b;
+  --p3: #ff6b6b;
+  --p4: #ff6b6b;
+  --shadow: rgba(16,24,40,0.06);
+}
+
+body.theme-light{
+  background:
+    radial-gradient(rgb(182 182 182 / 3%) 1px, transparent 1px) 0 0 / 3px 3px,
+    linear-gradient(135deg, #d4d4d4  0%, #d4d4d4  25%, #ffffff 50%, #d4d4d4  75%, #d4d4d4 100%);
+  background-attachment: fixed, fixed;
+  color: var(--text);
+}
+
+.theme-light .panel{
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(31,41,55,0.06);
+  box-shadow: 0 6px 18px rgba(16,24,40,0.05);
+}
+
+.theme-light .btn-glass{
+  background: rgb(153 153 153 / 8%);
+  color: #818181;
+  border-color: rgba(16,24,40,0.06);
+  box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+}
+.theme-light .btn-glass-primary{
+  background: linear-gradient(135deg, rgba(43,144,255,0.62), rgba(43,144,255,0.70));
+  color: #fff; 
+  border-color: rgba(43,144,255,0.18);
+}
+.theme-light .btn-glass-danger{
+  background: linear-gradient(135deg, rgba(217,83,79,0.62), rgba(217,83,79,0.70));
+  color: #fff;
+}
+
+.theme-light .modal{ background: rgba(10,14,20,0.18); }
+.theme-light .modal .dialog{ background: rgb(255 255 255 / 65%); border-color: rgba(16,24,40,0.06); }
+
+.theme-light .slot{ background: rgb(210 210 210 / 25%) ; border-color: var(--border); }
+.theme-light .cardc, .theme-light .catalog .citem, .theme-light .tool-card{ background: rgb(205 205 205 / 25%); border-color: var(--border); }
+
+.theme-light .hint, .theme-light .muted{ color: var(--muted); }
+.theme-light .section-title, .theme-light .calib-title, .theme-light .onboarding-title{ color: var(--primary); }
+
+.theme-light .slot .avatar, .theme-light .cardc img{ border-color: rgba(16,24,40,0.06); }
+
+.theme-light select, .theme-light input[type=text], .theme-light #searchInput, .theme-light #catalogSearchInput{ background: #d4d4d4; color: var(--text); border-color: var(--border); }
+
+.theme-light .slot.conflict{ outline: 2px solid rgba(217,83,79,0.14); }
+.theme-light .slot .conflict{ color: #b33a3a; }
+
+.theme-light #loadingOverlay{ background: rgba(255,255,255,0.95); }
+.theme-light #loadingOverlay .loading-text{ color: var(--text); font-weight:700; }
+
+.theme-toggle-btn{ position: absolute; right: 18px; top: 12px; z-index: 1100; }
+.theme-toggle-btn .toggle{ width:48px; height:28px; border-radius:999px; display:inline-flex; align-items:center; padding:4px; gap:6px; cursor:pointer; border:1px solid rgba(16,24,40,0.06); background: linear-gradient(180deg, #fff, #f2f4f7); box-shadow: 0 6px 14px rgba(16,24,40,0.06); }
+.theme-toggle-btn .toggle .knob{ width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(16,24,40,0.08); transform:translateX(0); transition: transform .22s cubic-bezier(.2,.9,.3,1); }
+.theme-toggle-btn .toggle[data-theme="dark"]{ background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25)); }
+.theme-toggle-btn .toggle[data-theme="dark"] .knob{ transform: translateX(20px); background: #111; }
+
+@media (max-width:720px){ .theme-toggle-btn{ right: 12px; top: 8px; } }
+
+.theme-light #closeRoleX.modal-x { color: #111 !important; }
+
+.theme-light #onboardingModal #pButtons .btn-glass.btn-glass-secondary:not(.primary) { color: #818181 !important; }
+
+.theme-light #onboardingModal #modeButtons .btn-glass.btn-glass-secondary:not(.primary) { color: #818181 !important; }
+
+.theme-light #closePickerX.modal-x { color: #111 !important; }
+
+.theme-light .modal-x { color: #111 !important; }
+.theme-light .modal-x svg path { fill: #111 !important; }
+
+.theme-light #catalogEleFilters .filter-button { filter: none !important; }
+.theme-light #catalogEleFilters .filter-button.active { border: 2px solid rgb(51 51 51 / 25%) !important; }
+
+.theme-light #catalogWpnFilters .filter-button { filter: invert(0.65) !important; }
+.theme-light #catalogWpnFilters .filter-button.active { border: 2px solid rgb(51 51 51 / 25%) !important; }
+
+.theme-light #eleFilters .filter-button { filter: none !important; }
+.theme-light #eleFilters .filter-button.active { border: 2px solid rgb(51 51 51 / 25%) !important; }
+.theme-light #wpnFilters .filter-button { filter: invert(0.65) !important; }
+.theme-light #wpnFilters .filter-button.active { border: 2px solid rgb(51 51 51 / 25%) !important; }
+
+.theme-light .plus svg path { fill: #CFD3DA !important; }
+.theme-light .plus svg { color: #CFD3DA; }
+
+.theme-light .tool-card.edit-card .plus svg path { fill: #111 !important; }
+.theme-light .tool-card.add-card .plus svg path { fill: #111 !important; }
+
+.theme-light .tool-card.add-card { color: #111 !important; }
+.theme-light .tool-card.edit-card { color: #111 !important; }
+.theme-light .entry-card.add-card { color: #111 !important;background: #d4d4d4; }
+
+.theme-light .mini.add {background: linear-gradient(135deg, rgba(43, 144, 255, 0.62), rgba(43, 144, 255, 0.70));}
+
+.theme-light .ghost.btn-edit,
+.theme-light .tool-card .title .ghost.btn-edit,
+.theme-light .ghost.btn-edit.mini { 
+  background: linear-gradient(180deg, rgba(43,144,255,0.44), rgba(43,144,255,0.56)) !important;
+  border-color: rgba(43,144,255,0.70) !important;
+  color: #062b4d !important;
+}
+.theme-light .ghost.btn-del,
+.theme-light .tool-card .title .ghost.btn-del,
+.theme-light .ghost.btn-del.mini {
+  background: linear-gradient(180deg, rgba(217,83,79,0.44), rgba(217,83,79,0.56)) !important;
+  border-color: rgba(217,83,79,0.70) !important;
+  color: #6b1717 !important;
+}
+
+.theme-light .ghost.mini.edit,
+.theme-light .ghost.mini.del,
+.theme-light button.ghost.mini.edit,
+.theme-light button.ghost.mini.del {
+  background: linear-gradient(180deg, rgba(43,144,255,0.44), rgba(43,144,255,0.56)) !important;
+  border-color: rgba(43,144,255,0.70) !important;
+  color: #062b4d !important;
+}
+
+.theme-light .ghost.mini.del,
+.theme-light button.ghost.mini.del {
+  background: linear-gradient(180deg, rgba(217,83,79,0.44), rgba(217,83,79,0.56)) !important;
+  border-color: rgba(217,83,79,0.70) !important;
+  color: #6b1717 !important;
+}
+
+.theme-light #closeToolEditorX.modal-x { color: #111 !important; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.theme-light::view-transition-old(root) {
+  z-index: 9999;
+}
+
+.theme-dark::view-transition-new(root) {
+  z-index: 9999;
+}

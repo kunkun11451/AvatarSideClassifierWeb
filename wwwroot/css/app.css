@@ -34,7 +34,7 @@ h1, h2, h3{display:block; width:100%; text-align:center}
 .section-title{ color:#6db3ff }
 .calib-title{ color:#6db3ff }
 
-.app-header{border-bottom:1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.2));}
+.app-header{border-bottom: none; background: transparent;}
 .app-header h1{margin:10px 0 4px; text-shadow: 2px 2px 4px var(--shadow)}
 .app-header .subtitle{margin:0 0 12px;color:var(--muted)}
 
@@ -398,6 +398,43 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 .entry-editor .mini{border-radius:8px; border:1px solid transparent; display:inline-flex; align-items:center; justify-content:center; color:#fff; transition: background .25s, border-color .25s, transform .2s}
 .entry-editor .mini:hover{transform:translateY(-1px)}
 .entry-editor .mini.add{width:auto; padding:6px 10px; gap:6px; background:linear-gradient(180deg, rgba(43,144,255,.22), rgba(43,144,255,.10)); border-color:rgba(43,144,255,.55)}
+
+/* Theme toggle button (single button with sun/moon icons) */
+.theme-toggle-btn{ position: absolute; right: 18px; top: 10px; z-index: 1100; }
+.theme-toggle-button{ width:40px; height:40px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--text); cursor:pointer; transition: background .18s ease, transform .12s ease, box-shadow .18s ease; padding:6px }
+.theme-toggle-button:hover{ transform: translateY(-2px); background: rgba(255,255,255,0.08) }
+.theme-toggle-button:active{ transform: translateY(0); }
+.theme-toggle-button .icon{ position: absolute; width:18px; height:18px; transition: opacity .18s ease, transform .18s ease; }
+.theme-toggle-button .sun{ opacity:1; transform: scale(1); }
+.theme-toggle-button .moon{ opacity:0; transform: scale(.8); }
+
+/* when light theme is active show moon (so clicking switches to dark) */
+.theme-light .theme-toggle-button .sun{ opacity:0; transform: scale(.8); }
+.theme-light .theme-toggle-button .moon{ opacity:1; transform: scale(1); }
+
+/* ensure icons contrast in light theme */
+.theme-light .theme-toggle-button{ background: rgba(255,255,255,0.9); color:#1f2328; border:1px solid rgba(0,0,0,0.06); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+
+@media (max-width:720px){ .theme-toggle-btn{ right:12px; top:8px } }
+
+.themeToggle { color: #bbb; width: 3em; }
+.st-sunMoonThemeToggleBtn { position: relative; cursor: pointer; }
+.st-sunMoonThemeToggleBtn .themeToggleInput { opacity: 0; width: 100%; aspect-ratio: 1; }
+.st-sunMoonThemeToggleBtn svg { position: absolute; left: 0; width: 100%; height: 100%; transition: transform 0.4s ease; transform: rotate(40deg); }
+.st-sunMoonThemeToggleBtn svg .sunMoon { transform-origin: center center; transition: inherit; transform: scale(1); }
+.st-sunMoonThemeToggleBtn svg .sunRay { transform-origin: center center; transform: scale(0); }
+.st-sunMoonThemeToggleBtn svg mask > circle { transition: transform 0.64s cubic-bezier(0.41, 0.64, 0.32, 1.575); transform: translate(0px, 0px); }
+.st-sunMoonThemeToggleBtn svg .sunRay2 { animation-delay: 0.05s !important; }
+.st-sunMoonThemeToggleBtn svg .sunRay3 { animation-delay: 0.1s !important; }
+.st-sunMoonThemeToggleBtn svg .sunRay4 { animation-delay: 0.17s !important; }
+.st-sunMoonThemeToggleBtn svg .sunRay5 { animation-delay: 0.25s !important; }
+.st-sunMoonThemeToggleBtn svg .sunRay5 { animation-delay: 0.29s !important; }
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg { transform: rotate(90deg); }
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg mask > circle { transform: translate(16px, -3px); }
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg .sunMoon { transform: scale(0.55); }
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg .sunRay { animation: showRay1832 0.4s ease 0s 1 forwards; }
+
+@keyframes showRay1832 { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 .entry-editor .mini.del{background:linear-gradient(180deg, rgba(255,83,83,.22), rgba(255,83,83,.10)); border-color:rgba(255,83,83,.55)}
 .entry-card-body{display:flex; gap:6px; flex-wrap:wrap;}
 .entry-card-tip{color:#9aa3af; font-size:12px; text-align:center}
@@ -433,6 +470,7 @@ select,input[type=text]{border:1px solid var(--border); background: rgba(255,255
 /* 随机数模板输入框统一样式 */
 .tool-card .num-inline .num-input{border:1px solid var(--border); background: rgba(255,255,255,0.06); color:var(--text); border-radius:8px; padding:6px 8px}
 .tool-card .num-inline select.num-preset-select{border:1px solid var(--border); background: rgba(255,255,255,0.06); color:var(--text); border-radius:8px; padding:6px 8px}
+.num-preset-select option{background: #666; color: #fff}
 .tool-card .num-inline .num-input.input-invalid{border-color: rgba(255,83,83,.75); box-shadow: 0 0 0 2px rgba(255,83,83,.18)}
 
 @media (max-width: 520px){
